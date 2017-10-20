@@ -43,9 +43,9 @@
     </properties>
 
     <scm>
-        <connection>scm:svn:http://svn.apache.org/repos/asf/sling/trunk/bundles/auth/form</connection>
-        <developerConnection>scm:svn:https://svn.apache.org/repos/asf/sling/trunk/bundles/auth/form</developerConnection>
-        <url>http://svn.apache.org/viewvc/sling/trunk/bundles/auth/form</url>
+        <connection>scm:git:https://gitbox.apache.org/repos/asf/sling-org-apache-sling-auth-form.git</conncetion>
+        <developerConnection>scm:git:https://gitbox.apache.org/repos/asf/sling-org-apache-sling-auth-form.git</developerConnection>
+        <url>https://gitbox.apache.org/repos/asf?p=sling-org-apache-sling-auth-form.git</url>
     </scm>
 
     <build>

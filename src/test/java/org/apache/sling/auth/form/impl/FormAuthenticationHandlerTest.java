@@ -36,7 +36,7 @@ import org.apache.sling.api.auth.Authenticator;
 import org.apache.sling.auth.core.spi.AuthenticationInfo;
 import org.apache.sling.auth.core.spi.DefaultAuthenticationFeedbackHandler;
 import org.hamcrest.Description;
-import org.hamcrest.text.StringStartsWith;
+import org.hamcrest.core.StringStartsWith;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.api.Action;

@@ -20,11 +20,13 @@
 package org.apache.sling.auth.form.impl.jaas;
 
 import java.util.Dictionary;
+import java.util.Hashtable;
 
 import javax.security.auth.spi.LoginModule;
 
 import org.apache.felix.jaas.LoginModuleFactory;
 import org.apache.sling.auth.form.impl.FormAuthenticationHandler;
+import org.apache.sling.auth.form.impl.FormAuthenticationHandlerConfig;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceRegistration;
@@ -40,19 +42,19 @@ public class JaasHelper {
     /**
      * login module service registration
      */
-    private final ServiceRegistration factoryRegistration;
+    private final ServiceRegistration<?> factoryRegistration;
 
     /**
      * Opens/Initializes the helper and registers the login module factory (LMF) service if possible.
      *
      * @param ctx        the bundle context
-     * @param properties properties that contain the jaas related LMF service properties.
+     * @param config properties that contain the jaas related LMF service properties.
      */
-    public JaasHelper(FormAuthenticationHandler authHandler, BundleContext ctx, Dictionary properties) {
+    public JaasHelper(FormAuthenticationHandler authHandler, BundleContext ctx, FormAuthenticationHandlerConfig config) {
         this.authHandler = authHandler;
         // we dynamically register the LoginModuleFactory for the case we detect a login module.
         if (hasSSOLoginModule(ctx)) {
-            factoryRegistration = registerLoginModuleFactory(ctx, properties);
+            factoryRegistration = registerLoginModuleFactory(ctx, config);
         } else {
             factoryRegistration = null;
         }
@@ -77,17 +79,17 @@ public class JaasHelper {
         }
     }
 
-    private ServiceRegistration registerLoginModuleFactory(BundleContext ctx, Dictionary properties) {
-        ServiceRegistration reg = null;
+    private ServiceRegistration<?> registerLoginModuleFactory(BundleContext ctx, FormAuthenticationHandlerConfig config) {
+        ServiceRegistration<?> reg = null;
         try {
-            java.util.Properties props = new java.util.Properties();
+            Dictionary<String, Object> props = new Hashtable<String,Object>();
             final String desc = "LoginModule Support for FormAuthenticationHandler";
             props.put(Constants.SERVICE_DESCRIPTION, desc);
             props.put(Constants.SERVICE_VENDOR, ctx.getBundle().getHeaders().get(Constants.BUNDLE_VENDOR));
 
-            props.put(LoginModuleFactory.JAAS_RANKING, properties.get(LoginModuleFactory.JAAS_RANKING));
-            props.put(LoginModuleFactory.JAAS_CONTROL_FLAG, properties.get(LoginModuleFactory.JAAS_CONTROL_FLAG));
-            props.put(LoginModuleFactory.JAAS_REALM_NAME, properties.get(LoginModuleFactory.JAAS_REALM_NAME));
+            props.put(LoginModuleFactory.JAAS_RANKING, config.jaas_ranking());
+            props.put(LoginModuleFactory.JAAS_CONTROL_FLAG, config.jaas_controlFlag());
+            props.put(LoginModuleFactory.JAAS_REALM_NAME, config.jaas_realmName());
             reg = ctx.registerService(LoginModuleFactory.class.getName(),
                     new LoginModuleFactory() {
                         public LoginModule createLoginModule() {

@@ -21,68 +21,55 @@ package org.apache.sling.auth.form.impl;
 import javax.servlet.Servlet;
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Properties;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.auth.core.spi.AbstractAuthenticationFormServlet;
 import org.apache.sling.auth.core.spi.AuthenticationHandler;
 import org.apache.sling.auth.form.FormReason;
+import org.osgi.service.component.annotations.Component;
 
 /**
  * The <code>AuthenticationFormServlet</code> provides the default login form
  * used for Form Based Authentication.
  */
-@Component
-@Properties( {
-    @Property(name = "service.description", value = "Default Login Form for Form Based Authentication") })
-@Service(value = Servlet.class)
-@SuppressWarnings("serial")
+@Component(service = Servlet.class, property = { "sling.auth.requirements=" + AuthenticationFormServlet.AUTH_REQUIREMENTS,
+		"sling.servlet.paths=" + AuthenticationFormServlet.SERVLET_PATH,
+		"service.description=Default Login Form for Form Based Authentication" })
 public class AuthenticationFormServlet extends AbstractAuthenticationFormServlet {
 
-    /**
-     * The constant is used to provide the service registration path
-     */
-    @Property(name = "sling.servlet.paths")
-    static final String SERVLET_PATH = "/system/sling/form/login";
+	public static final String SERVLET_PATH = "/system/sling/form/login";
+	public static final String AUTH_REQUIREMENTS = "-" + SERVLET_PATH;
 
-    /**
-     * This constant is used to provide the service registration property
-     * indicating to pass requests to this servlet unauthenticated.
-     */
-    @Property(name = "sling.auth.requirements")
-    @SuppressWarnings("unused")
-    private static final String AUTH_REQUIREMENT = "-" + SERVLET_PATH;
+	private static final long serialVersionUID = -1497963620502763188L;
 
-    /**
-     * Returns an informational message according to the value provided in the
-     * <code>j_reason</code> request parameter. Supported reasons are invalid
-     * credentials and session timeout.
-     *
-     * @param request The request providing the parameter
-     * @return The "translated" reason to render the login form or an empty
-     *         string if there is no specific reason
-     */
-    @Override
-    protected String getReason(final HttpServletRequest request) {
-        // return the resource attribute if set to a non-empty string
-        Object resObj = request.getAttribute(AuthenticationHandler.FAILURE_REASON);
-        if (resObj instanceof FormReason) {
-            return ((FormReason) resObj).toString();
-        }
+	/**
+	 * Returns an informational message according to the value provided in the
+	 * <code>j_reason</code> request parameter. Supported reasons are invalid
+	 * credentials and session timeout.
+	 *
+	 * @param request
+	 *            The request providing the parameter
+	 * @return The "translated" reason to render the login form or an empty string
+	 *         if there is no specific reason
+	 */
+	@Override
+	protected String getReason(final HttpServletRequest request) {
+		// return the resource attribute if set to a non-empty string
+		Object resObj = request.getAttribute(AuthenticationHandler.FAILURE_REASON);
+		if (resObj instanceof FormReason) {
+			return ((FormReason) resObj).toString();
+		}
 
-        final String reason = request.getParameter(AuthenticationHandler.FAILURE_REASON);
-        if (reason != null) {
-            try {
-                return FormReason.valueOf(reason).toString();
-            } catch (IllegalArgumentException iae) {
-                // thrown if the reason is not an expected value, assume none
-            }
+		final String reason = request.getParameter(AuthenticationHandler.FAILURE_REASON);
+		if (reason != null) {
+			try {
+				return FormReason.valueOf(reason).toString();
+			} catch (IllegalArgumentException iae) {
+				// thrown if the reason is not an expected value, assume none
+			}
 
-            // no valid FormReason value, use raw value
-            return reason;
-        }
+			// no valid FormReason value, use raw value
+			return reason;
+		}
 
-        return "";
-    }
+		return "";
+	}
 }

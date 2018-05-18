@@ -51,6 +51,7 @@ import org.apache.sling.auth.form.impl.jaas.JaasHelper;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
@@ -543,6 +544,7 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
 	 * @throws IllegalStateException
 	 * @throws UnsupportedEncodingException
 	 */
+	@Activate
 	protected void activate(FormAuthenticationHandlerConfig config, ComponentContext componentContext)
 			throws InvalidKeyException, NoSuchAlgorithmException, IllegalStateException, UnsupportedEncodingException {
 

@@ -8,4 +8,4 @@ Bundle implementing form based authentication with login and logout support.
 Authentication state is maintained in a Cookie or in an HTTP Session. The
 password is only submitted when first authenticating.
 
-This module is part of the [Apache Sling](https://sling.apache.org) project.
+This module is part of the [Apache Sling](https://sling.apache.org) project. You can read more about this module on our [documentation site](http://sling.apache.org/documentation/the-sling-engine/authentication/authentication-authenticationhandler/form-based-authenticationhandler.html).

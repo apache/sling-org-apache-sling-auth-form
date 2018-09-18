@@ -88,4 +88,6 @@ public @interface FormAuthenticationHandlerConfig {
 	@AttributeDefinition(type = AttributeType.BOOLEAN, name = "%useInclude.name", description = "%useInclude.description")
 	boolean useInclude() default false;
 
+	@AttributeDefinition(type = AttributeType.BOOLEAN, name = "%preferReasonCode.name", description = "%preferReasonCode.description")
+	boolean preferReasonCode() default false;
 }

@@ -156,6 +156,12 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
 	private boolean includeLoginForm;
 
 	/**
+	 * If true, the handler will attempt to include the reason code as a request parameter
+	 * instead of the reason text.
+	 */
+	private boolean preferReasonCode;
+
+	/**
 	 * The resource resolver factory used to resolve the login form as a resource
 	 */
 	@Reference(policy = ReferencePolicy.DYNAMIC, cardinality = ReferenceCardinality.OPTIONAL)
@@ -262,11 +268,20 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
 		params.put(Authenticator.LOGIN_RESOURCE, resource);
 
 		// append indication of previous login failure
-		if (request.getAttribute(FAILURE_REASON) != null) {
-			final Object jReason = request.getAttribute(FAILURE_REASON);
-			@SuppressWarnings("rawtypes")
-			final String reason = (jReason instanceof Enum) ? ((Enum) jReason).name() : jReason.toString();
-			params.put(FAILURE_REASON, reason);
+		if (preferReasonCode) {
+			if (request.getAttribute(FAILURE_REASON_CODE) != null) {
+				final Object jReasonCode = request.getAttribute(FAILURE_REASON_CODE);
+				@SuppressWarnings("rawtypes")
+				final String reasonCode = (jReasonCode instanceof Enum) ? ((Enum) jReasonCode).name() : jReasonCode.toString();
+				params.put(FAILURE_REASON_CODE, reasonCode);
+			}
+		} else {
+			if (request.getAttribute(FAILURE_REASON) != null) {
+				final Object jReason = request.getAttribute(FAILURE_REASON);
+				@SuppressWarnings("rawtypes")
+				final String reason = (jReason instanceof Enum) ? ((Enum) jReason).name() : jReason.toString();
+				params.put(FAILURE_REASON, reason);
+			}
 		}
 
 		try {
@@ -598,6 +613,8 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
 		this.includeLoginForm = config.useInclude();
 
 		this.loginAfterExpire = config.form_onexpire_login();
+		
+		this.preferReasonCode = config.preferReasonCode();
 	}
 
 	@Deactivate

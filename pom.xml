@@ -14,14 +14,13 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.apache.sling</groupId>
-		<artifactId>sling</artifactId>
-		<version>33</version>
+		<artifactId>sling-bundle-parent</artifactId>
+		<version>38</version>
 		<relativePath />
 	</parent>
 
 	<artifactId>org.apache.sling.auth.form</artifactId>
 	<version>1.0.17-SNAPSHOT</version>
-	<packaging>bundle</packaging>
 
 	<name>Apache Sling Form Based Authentication Handler</name>
 	<description>
@@ -43,47 +42,6 @@
 	  <tag>HEAD</tag>
   </scm>
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.felix</groupId>
-				<artifactId>maven-bundle-plugin</artifactId>
-				<extensions>true</extensions>
-				<configuration>
-					<instructions>
-						<Bundle-DocURL>
-							http://sling.apache.org/site/form-based-authenticationhandler.html
-						</Bundle-DocURL>
-						<Export-Package>
-							org.apache.sling.auth.form;version=1.0
-						</Export-Package>
-						<Private-Package>
-							org.apache.sling.auth.form.impl.*
-						</Private-Package>
-						<Import-Package>
-							javax.security.auth.callback;
-							javax.security.auth.login;
-							org.apache.sling.jcr.jackrabbit.server.security;
-							resolution:=optional,
-							*
-						</Import-Package>
-						<Embed-Dependency>
-							org.apache.sling.commons.osgi;inline="org/apache/sling/commons/osgi/OsgiUtil.*",
-							commons-codec;inline="org/apache/commons/codec/binary/Base64.*
-							|org/apache/commons/codec/binary/Hex*
-							|org/apache/commons/codec/binary/StringUtils*
-							|org/apache/commons/codec/BinaryEncoder*
-							|org/apache/commons/codec/BinaryDecoder*
-							|org/apache/commons/codec/Encoder*
-							|org/apache/commons/codec/Decoder*
-							|org/apache/commons/codec/EncoderException*
-							|org/apache/commons/codec/DecoderException*"
-						</Embed-Dependency>
-					</instructions>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
 
 	<dependencies>
 		<dependency>
@@ -93,6 +51,10 @@
 		<dependency>
 			<groupId>org.osgi</groupId>
 			<artifactId>org.osgi.service.metatype.annotations</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.annotation.versioning</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.sling</groupId>
@@ -134,12 +96,6 @@
 		</dependency>
 
 		<!-- Embedded Dependencies -->
-		<dependency>
-			<groupId>org.apache.sling</groupId>
-			<artifactId>org.apache.sling.commons.osgi</artifactId>
-			<version>2.0.2-incubator</version>
-			<scope>provided</scope>
-		</dependency>
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>

@@ -46,11 +46,13 @@ import org.junit.runner.RunWith;
 import org.osgi.framework.BundleContext;
 import org.powermock.api.easymock.PowerMock;
 import org.powermock.api.support.membermodification.MemberMatcher;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(FormAuthenticationHandler.class)
+@PowerMockIgnore("jdk.internal.reflect.*")
 public class FormAuthenticationHandlerTest {
 
     @Test public void test_getTokenFile() {

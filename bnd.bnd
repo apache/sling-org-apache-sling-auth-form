@@ -1,0 +1,7 @@
+Import-Package: javax.security.auth.callback, \
+    javax.security.auth.login, \
+    org.apache.sling.jcr.jackrabbit.server.security;resolution:=optional, \
+    *
+
+Bundle-DocURL: http://sling.apache.org/site/form-based-authenticationhandler.html
+Conditional-Package: org.apache.commons.codec*

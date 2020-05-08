@@ -22,7 +22,7 @@
 	<artifactId>org.apache.sling.auth.form</artifactId>
 	<version>1.0.17-SNAPSHOT</version>
 
-	<name>Apache Sling Form Based Authentication Handler</name>
+	<name>Apache Sling Form Based Authentication</name>
 	<description>
         Bundle implementing form based authentication with login
         and logout support. Authentication state is maintained in

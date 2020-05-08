@@ -222,6 +222,10 @@ class TokenStore {
 
                     try {
                         SecretKey secretKey = currentTokens[tokenNumber];
+                        if ( secretKey == null ) {
+                            log.error("AuthNCookie value '{}' points to an unknown token number", value);
+                            return false;
+                        }
                         String hmac = encode(cookieTime, parts[2], tokenNumber,
                             secretKey);
                         return value.equals(hmac);

@@ -512,11 +512,20 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
 	}
 
 	private String getCookieAuthData(final AuthenticationInfo info) {
-		Object data = info.get(attrCookieAuthData);
-		if (data instanceof String) {
-			return (String) data;
+		String authData = null;
+		if (jaasHelper.enabled()) {
+			// JcrResourceConstants.AUTHENTICATION_INFO_CREDENTIALS
+			Object credentials = info.get("user.jcr.credentials");
+			if (credentials instanceof Credentials) {
+				authData = getCookieAuthData((Credentials)credentials);
+			}
+		} else {
+			Object data = info.get(attrCookieAuthData);
+			if (data instanceof String) {
+				authData = (String) data;
+			}
 		}
-		return null;
+		return authData;
 	}
 
 	// ---------- LoginModulePlugin support

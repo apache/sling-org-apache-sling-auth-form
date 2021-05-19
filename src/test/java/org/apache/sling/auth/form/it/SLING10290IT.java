@@ -196,7 +196,7 @@ public class SLING10290IT extends AuthFormTestSupport {
         doFormsLogin();
 
         // 2. wait for half the session timeout expiration duration
-        Thread.sleep((Duration.ofMinutes(1).toMillis() / 2) + 1);
+        Thread.sleep((Duration.ofMinutes(1).toMillis() / 2) + 1); // NOSONAR
 
         // 3. do another request to trigger the cookie refresh
         HttpGet request = new HttpGet(whoamiUri());

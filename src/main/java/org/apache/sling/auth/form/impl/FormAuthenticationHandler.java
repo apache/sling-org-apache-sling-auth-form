@@ -48,6 +48,7 @@ import org.apache.sling.auth.core.spi.DefaultAuthenticationFeedbackHandler;
 import org.apache.sling.auth.form.FormReason;
 import org.apache.sling.auth.form.impl.jaas.FormCredentials;
 import org.apache.sling.auth.form.impl.jaas.JaasHelper;
+import org.apache.sling.jcr.resource.api.JcrResourceConstants;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
@@ -502,8 +503,7 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
 		final AuthenticationInfo info = new AuthenticationInfo(HttpServletRequest.FORM_AUTH, userId);
 
 		if (jaasHelper.enabled()) {
-			// JcrResourceConstants.AUTHENTICATION_INFO_CREDENTIALS
-			info.put("user.jcr.credentials", new FormCredentials(userId, authData));
+			info.put(JcrResourceConstants.AUTHENTICATION_INFO_CREDENTIALS, new FormCredentials(userId, authData));
 		} else {
 			info.put(attrCookieAuthData, authData);
 		}
@@ -514,8 +514,7 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
 	private String getCookieAuthData(final AuthenticationInfo info) {
 		String authData = null;
 		if (jaasHelper.enabled()) {
-			// JcrResourceConstants.AUTHENTICATION_INFO_CREDENTIALS
-			Object credentials = info.get("user.jcr.credentials");
+			Object credentials = info.get(JcrResourceConstants.AUTHENTICATION_INFO_CREDENTIALS);
 			if (credentials instanceof Credentials) {
 				authData = getCookieAuthData((Credentials)credentials);
 			}

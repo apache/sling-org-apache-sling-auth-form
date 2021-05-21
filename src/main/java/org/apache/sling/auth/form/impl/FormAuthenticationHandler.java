@@ -251,7 +251,7 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
                 if (loginFormServlet != null) {
                         loginFormServlet.service(request, response);
                         return true;
-				}
+                }
                     } catch (ServletException e) {
                         log.error("Failed to include the form: " + loginForm, e);
             } catch (LoginException e) {
@@ -264,7 +264,7 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
             }
         }
 
-		HashMap<String, String> params = new HashMap<>();
+        HashMap<String, String> params = new HashMap<>();
         params.put(Authenticator.LOGIN_RESOURCE, resource);
 
         // append indication of previous login failure
@@ -444,7 +444,7 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
             try {
                 authData = null;
                 authData = tokenStore.encode(expires, authInfo.getUser());
-			} catch (InvalidKeyException | IllegalStateException | NoSuchAlgorithmException e) {
+            } catch (InvalidKeyException | IllegalStateException | NoSuchAlgorithmException e) {
                 log.error(e.getMessage(), e);
             }
 
@@ -562,7 +562,7 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
      */
     @Activate
     protected void activate(FormAuthenticationHandlerConfig config, ComponentContext componentContext)
-			throws InvalidKeyException, NoSuchAlgorithmException, IllegalStateException {
+            throws InvalidKeyException, NoSuchAlgorithmException, IllegalStateException {
 
         this.jaasHelper = new JaasHelper(this, componentContext.getBundleContext(), config);
         this.loginForm = config.form_login_form();
@@ -575,8 +575,8 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
             defaultCookieDomain = null;
         }
 
-		final String formAuthStorage = config.form_auth_storage();
-		if (FormAuthenticationHandlerConfig.AUTH_STORAGE_SESSION_ATTRIBUTE.equals(formAuthStorage)) {
+        final String formAuthStorage = config.form_auth_storage();
+        if (FormAuthenticationHandlerConfig.AUTH_STORAGE_SESSION_ATTRIBUTE.equals(formAuthStorage)) {
             this.authStorage = new SessionStorage(authName);
             log.info("Using HTTP Session store with attribute name {}", authName);
         } else {
@@ -678,7 +678,7 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
     String getUserId(final String authData) {
         if (authData != null) {
             String[] parts = TokenStore.split(authData);
-			if (parts.length == 3) {
+            if (parts.length == 3) {
                 return parts[2];
             }
         }
@@ -698,7 +698,7 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
             updateCookie = true;
         } else {
             String[] parts = TokenStore.split(authData);
-			if (parts.length == 3) {
+            if (parts.length == 3) {
                 long cookieTime = Long.parseLong(parts[1].substring(1));
                 if (System.currentTimeMillis() + (sessionTimeout / 2) > cookieTime) {
                     updateCookie = true;
@@ -770,7 +770,7 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
         public void set(HttpServletRequest request, HttpServletResponse response, String authData,
                 AuthenticationInfo info) {
             // base64 encode to handle any special characters
-			String cookieValue = Base64.encodeBase64URLSafeString(authData.getBytes(StandardCharsets.UTF_8));
+            String cookieValue = Base64.encodeBase64URLSafeString(authData.getBytes(StandardCharsets.UTF_8));
 
             // send the cookie to the response
             String cookieDomain = (String) info.get(COOKIE_DOMAIN);

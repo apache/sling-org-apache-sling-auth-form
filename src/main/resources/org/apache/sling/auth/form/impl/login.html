@@ -39,29 +39,29 @@
             <div class="Cell Align-Center Main-Content">
                 <div class="Grid">
                     <section class="Cell Medium-35">
-                    	<h3>Login:</h3>
-						<form id="loginform" method="POST" action="${contextPath}/j_security_check" enctype="multipart/form-data" accept-charset="UTF-8">
-							<input type="hidden" name="_charset_" value="UTF-8" />
-							<input type="hidden" name="resource" value="${resource}" />
-							<div id="error">
-								<p>${j_reason}</p>
-							</div>
-							<div>
-								<label for="j_username" >Username:</label>
-							</div>
-							<div>
-								<input id="j_username" name="j_username" type="text" autofocus/>
-							</div>
-							<div>
-								<label for="j_password" accesskey="p">Password:</label>
-							</div>
-							<div>
-								<input id="j_password" name="j_password" type="password" />
-							</div>
-							<div class="buttongroup">
-								<button id="login" class="form-button" type="submit">Login</button>
-							</div>
-						</form>
+                        <h3>Login:</h3>
+                        <form id="loginform" method="POST" action="${contextPath}/j_security_check" enctype="multipart/form-data" accept-charset="UTF-8">
+                            <input type="hidden" name="_charset_" value="UTF-8" />
+                            <input type="hidden" name="resource" value="${resource}" />
+                            <div id="error">
+                                <p>${j_reason}</p>
+                            </div>
+                            <div>
+                                <label for="j_username" >Username:</label>
+                            </div>
+                            <div>
+                                <input id="j_username" name="j_username" type="text" autofocus/>
+                            </div>
+                            <div>
+                                <label for="j_password" accesskey="p">Password:</label>
+                            </div>
+                            <div>
+                                <input id="j_password" name="j_password" type="password" />
+                            </div>
+                            <div class="buttongroup">
+                                <button id="login" class="form-button" type="submit">Login</button>
+                            </div>
+                        </form>
                     </section>
                     <div class="Cell Medium-65">
                     </div>

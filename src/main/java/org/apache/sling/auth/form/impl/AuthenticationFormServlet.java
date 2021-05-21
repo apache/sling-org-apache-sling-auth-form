@@ -31,45 +31,45 @@ import org.osgi.service.component.annotations.Component;
  * used for Form Based Authentication.
  */
 @Component(service = Servlet.class, property = { "sling.auth.requirements=" + AuthenticationFormServlet.AUTH_REQUIREMENTS,
-		"sling.servlet.paths=" + AuthenticationFormServlet.SERVLET_PATH,
-		"service.description=Default Login Form for Form Based Authentication" })
+        "sling.servlet.paths=" + AuthenticationFormServlet.SERVLET_PATH,
+        "service.description=Default Login Form for Form Based Authentication" })
 public class AuthenticationFormServlet extends AbstractAuthenticationFormServlet {
 
-	public static final String SERVLET_PATH = "/system/sling/form/login";
-	public static final String AUTH_REQUIREMENTS = "-" + SERVLET_PATH;
+    public static final String SERVLET_PATH = "/system/sling/form/login";
+    public static final String AUTH_REQUIREMENTS = "-" + SERVLET_PATH;
 
-	private static final long serialVersionUID = -1497963620502763188L;
+    private static final long serialVersionUID = -1497963620502763188L;
 
-	/**
-	 * Returns an informational message according to the value provided in the
-	 * <code>j_reason</code> request parameter. Supported reasons are invalid
-	 * credentials and session timeout.
-	 *
-	 * @param request
-	 *            The request providing the parameter
-	 * @return The "translated" reason to render the login form or an empty string
-	 *         if there is no specific reason
-	 */
-	@Override
-	protected String getReason(final HttpServletRequest request) {
-		// return the resource attribute if set to a non-empty string
-		Object resObj = request.getAttribute(AuthenticationHandler.FAILURE_REASON);
-		if (resObj instanceof FormReason) {
-			return ((FormReason) resObj).toString();
-		}
+    /**
+     * Returns an informational message according to the value provided in the
+     * <code>j_reason</code> request parameter. Supported reasons are invalid
+     * credentials and session timeout.
+     *
+     * @param request
+     *            The request providing the parameter
+     * @return The "translated" reason to render the login form or an empty string
+     *         if there is no specific reason
+     */
+    @Override
+    protected String getReason(final HttpServletRequest request) {
+        // return the resource attribute if set to a non-empty string
+        Object resObj = request.getAttribute(AuthenticationHandler.FAILURE_REASON);
+        if (resObj instanceof FormReason) {
+            return ((FormReason) resObj).toString();
+        }
 
-		final String reason = request.getParameter(AuthenticationHandler.FAILURE_REASON);
-		if (reason != null) {
-			try {
-				return FormReason.valueOf(reason).toString();
-			} catch (IllegalArgumentException iae) {
-				// thrown if the reason is not an expected value, assume none
-			}
+        final String reason = request.getParameter(AuthenticationHandler.FAILURE_REASON);
+        if (reason != null) {
+            try {
+                return FormReason.valueOf(reason).toString();
+            } catch (IllegalArgumentException iae) {
+                // thrown if the reason is not an expected value, assume none
+            }
 
-			// no valid FormReason value, use raw value
-			return reason;
-		}
+            // no valid FormReason value, use raw value
+            return reason;
+        }
 
-		return "";
-	}
+        return "";
+    }
 }

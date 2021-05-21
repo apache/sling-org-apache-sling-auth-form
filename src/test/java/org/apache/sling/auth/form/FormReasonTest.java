@@ -25,17 +25,17 @@ import org.junit.Test;
 
 public class FormReasonTest {
 
-    @Test public void test_TIMEOUT() {
+    @Test public void testTimeout() {
         assertEquals(FormReason.TIMEOUT,
             FormReason.valueOf(FormReason.TIMEOUT.name()));
     }
 
-    @Test public void test_INVALID_CREDENTIALS() {
+    @Test public void testInvalidCredentials() {
         assertEquals(FormReason.INVALID_CREDENTIALS,
             FormReason.valueOf(FormReason.INVALID_CREDENTIALS.name()));
     }
 
-    @Test public void test_INVALID() {
+    @Test public void testInvalid() {
         try {
             FormReason.valueOf("INVALID");
             fail("unexpected result getting value of an invalid constant");

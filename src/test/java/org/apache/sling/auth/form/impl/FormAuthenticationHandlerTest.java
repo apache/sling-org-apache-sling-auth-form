@@ -55,7 +55,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 @PowerMockIgnore("jdk.internal.reflect.*")
 public class FormAuthenticationHandlerTest {
 
-    @Test public void test_getTokenFile() {
+    @Test public void testGetTokenFile() {
         final File root = new File("bundle999").getAbsoluteFile();
         final SlingHomeAction slingHome = new SlingHomeAction();
         slingHome.setSlingHome(new File("sling").getAbsolutePath());
@@ -107,7 +107,7 @@ public class FormAuthenticationHandlerTest {
         assertEquals(absFile, absFile0);
     }
 
-    @Test public void test_getUserid() {
+    @Test public void testGetUserid() {
         final FormAuthenticationHandler handler = new FormAuthenticationHandler();
         assertEquals(null, handler.getUserId(null));
         assertEquals(null, handler.getUserId(""));
@@ -147,7 +147,7 @@ public class FormAuthenticationHandlerTest {
         // Mocks the HttpServletRequest and HttpServletResponse object
         expect(request.getMethod()).andReturn("POST");
         expect(request.getRequestURI()).andReturn("http://blah/blah/j_security_check");
-        String contextPath = "/blah";
+        String contextPath = "/blah"; // NOSONAR
         expect(request.getContextPath()).andReturn(contextPath).anyTimes();
         expect(response.isCommitted()).andReturn(false);
 

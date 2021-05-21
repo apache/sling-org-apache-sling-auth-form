@@ -97,7 +97,7 @@ public abstract class AuthFormTestSupport extends TestSupport {
         );
     }
 
-    protected Option[] additionalOptions() throws IOException {
+    protected Option[] additionalOptions() throws IOException { // NOSONAR
         return new Option[]{};
     }
 

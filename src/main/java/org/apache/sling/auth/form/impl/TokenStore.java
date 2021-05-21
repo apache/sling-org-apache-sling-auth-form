@@ -24,15 +24,18 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.concurrent.atomic.AtomicReferenceArray;
 import javax.crypto.Mac;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +45,7 @@ import org.slf4j.LoggerFactory;
  * validate and persist secure tokens.
  */
 class TokenStore {
+    private static final String[] EMPTY_ARRAY = new String[0];
 
     /**
      * Array of hex characters used by {@link #byteToHex(byte[])} to convert a
@@ -88,7 +92,7 @@ class TokenStore {
     /**
      * A ring of tokens used to encrypt.
      */
-    private volatile SecretKey[] currentTokens;
+    private AtomicReferenceArray<SecretKey> currentTokens;
 
     /**
      * A secure random used for generating new tokens.
@@ -111,8 +115,7 @@ class TokenStore {
      */
     TokenStore(final File tokenFile, final long sessionTimeout,
             final boolean fastSeed) throws NoSuchAlgorithmException,
-            InvalidKeyException, IllegalStateException,
-            UnsupportedEncodingException {
+            InvalidKeyException, IllegalStateException {
 
         if (tokenFile == null) {
             throw new NullPointerException("tokenfile");
@@ -142,7 +145,7 @@ class TokenStore {
         final SecretKey secretKey = new SecretKeySpec(b, HMAC_SHA1);
         final Mac m = Mac.getInstance(HMAC_SHA1);
         m.init(secretKey);
-        m.update(UTF_8.getBytes(UTF_8));
+        m.update(UTF_8.getBytes(StandardCharsets.UTF_8));
         m.doFinal();
     }
 
@@ -156,23 +159,22 @@ class TokenStore {
      * @throws InvalidKeyException
      */
     String encode(final long expires, final String userId)
-            throws IllegalStateException, UnsupportedEncodingException,
+            throws IllegalStateException,
             NoSuchAlgorithmException, InvalidKeyException {
         int token = getActiveToken();
-        SecretKey key = currentTokens[token];
+        SecretKey key = currentTokens.get(token);
         return encode(expires, userId, token, key);
     }
 
     private String encode(final long expires, final String userId,
             final int token, final SecretKey key) throws IllegalStateException,
-            UnsupportedEncodingException, NoSuchAlgorithmException,
-            InvalidKeyException {
+            NoSuchAlgorithmException, InvalidKeyException {
 
         String cookiePayload = String.valueOf(token) + String.valueOf(expires)
             + "@" + userId;
         Mac m = Mac.getInstance(HMAC_SHA1);
         m.init(key);
-        m.update(cookiePayload.getBytes(UTF_8));
+        m.update(cookiePayload.getBytes(StandardCharsets.UTF_8));
         String cookieValue = byteToHex(m.doFinal());
         return cookieValue + "@" + cookiePayload;
     }
@@ -187,12 +189,12 @@ class TokenStore {
      *         <code>null</code> or if the string does not contain (at least)
      *         three '@' separated parts.
      */
-    static String[] split(final String authData) {
+    static @NotNull String[] split(final String authData) {
         String[] parts = StringUtils.split(authData, "@", 3);
         if (parts != null && parts.length == 3) {
             return parts;
         }
-        return null;
+        return EMPTY_ARRAY;
     }
 
     /**
@@ -211,17 +213,17 @@ class TokenStore {
      */
     boolean isValid(String value) {
         String[] parts = split(value);
-        if (parts != null) {
+        if (parts.length == 3) {
 
             // single digit token number
             int tokenNumber = parts[1].charAt(0) - '0';
-            if (tokenNumber >= 0 && tokenNumber < currentTokens.length) {
+            if (tokenNumber >= 0 && tokenNumber < currentTokens.length()) {
 
                 long cookieTime = Long.parseLong(parts[1].substring(1));
                 if (System.currentTimeMillis() < cookieTime) {
 
                     try {
-                        SecretKey secretKey = currentTokens[tokenNumber];
+                        SecretKey secretKey = currentTokens.get(tokenNumber);
                         if ( secretKey == null ) {
                             log.error("AuthNCookie value '{}' points to an unknown token number", value);
                             return false;
@@ -229,15 +231,8 @@ class TokenStore {
                         String hmac = encode(cookieTime, parts[2], tokenNumber,
                             secretKey);
                         return value.equals(hmac);
-                    } catch (ArrayIndexOutOfBoundsException e) {
-                        log.error(e.getMessage(), e);
-                    } catch (InvalidKeyException e) {
-                        log.error(e.getMessage(), e);
-                    } catch (IllegalStateException e) {
-                        log.error(e.getMessage(), e);
-                    } catch (UnsupportedEncodingException e) {
-                        log.error(e.getMessage(), e);
-                    } catch (NoSuchAlgorithmException e) {
+                    } catch (ArrayIndexOutOfBoundsException | InvalidKeyException | IllegalStateException |
+                             NoSuchAlgorithmException e) {
                         log.error(e.getMessage(), e);
                     }
 
@@ -250,7 +245,7 @@ class TokenStore {
 
             } else {
                 log.error(
-                    "AuthNCookie value '{}' is invalid: refers to an invalid token number",
+                    "AuthNCookie value '{}' is invalid: refers to an invalid token number {}",
                     value, tokenNumber);
             }
 
@@ -269,20 +264,20 @@ class TokenStore {
      */
     private synchronized int getActiveToken() {
         if (System.currentTimeMillis() > nextUpdate
-            || currentTokens[currentToken] == null) {
+            || currentTokens.get(currentToken) == null) {
             // cycle so that during a typical ttl the tokens get completely
             // refreshed.
             nextUpdate = System.currentTimeMillis() + ttl
-                / (currentTokens.length - 1);
+                / (currentTokens.length() - 1);
             byte[] b = new byte[20];
             random.nextBytes(b);
 
             SecretKey newToken = new SecretKeySpec(b, HMAC_SHA1);
             int nextToken = currentToken + 1;
-            if (nextToken == currentTokens.length) {
+            if (nextToken == currentTokens.length()) {
                 nextToken = 0;
             }
-            currentTokens[nextToken] = newToken;
+            currentTokens.set(nextToken, newToken);
             currentToken = nextToken;
             saveTokens();
         }
@@ -293,41 +288,29 @@ class TokenStore {
      * Stores the current set of tokens to the token file
      */
     private void saveTokens() {
-        FileOutputStream fout = null;
-        DataOutputStream keyOutputStream = null;
-        try {
             File parent = tokenFile.getAbsoluteFile().getParentFile();
             log.info("Token File {} parent {} ", tokenFile, parent);
             if (!parent.exists()) {
                 parent.mkdirs();
             }
-            fout = new FileOutputStream(tmpTokenFile);
-            keyOutputStream = new DataOutputStream(fout);
+        try (DataOutputStream keyOutputStream = new DataOutputStream(new FileOutputStream(tmpTokenFile))) {
             keyOutputStream.writeInt(currentToken);
             keyOutputStream.writeLong(nextUpdate);
-            for (int i = 0; i < currentTokens.length; i++) {
-                if (currentTokens[i] == null) {
+            for (int i = 0; i < currentTokens.length(); i++) {
+                if (currentTokens.get(i) == null) {
                     keyOutputStream.writeInt(0);
                 } else {
                     keyOutputStream.writeInt(1);
-                    byte[] b = currentTokens[i].getEncoded();
+                    byte[] b = currentTokens.get(i).getEncoded();
                     keyOutputStream.writeInt(b.length);
                     keyOutputStream.write(b);
                 }
             }
-            keyOutputStream.close();
-            tmpTokenFile.renameTo(tokenFile);
         } catch (IOException e) {
-            log.error("Failed to save cookie keys " + e.getMessage());
-        } finally {
-            try {
-                keyOutputStream.close();
-            } catch (Exception e) {
+            log.error("Failed to save cookie keys {}", e.getMessage());
             }
-            try {
-                fout.close();
-            } catch (Exception e) {
-            }
+        if (!tmpTokenFile.renameTo(tokenFile)) {
+            log.error("Failed to rename the temporary token file");
 
         }
     }
@@ -339,23 +322,24 @@ class TokenStore {
      */
     private void loadTokens() {
         if (tokenFile.isFile() && tokenFile.canRead()) {
-            FileInputStream fin = null;
-            DataInputStream keyInputStream = null;
-            try {
-                fin = new FileInputStream(tokenFile);
-                keyInputStream = new DataInputStream(fin);
+            try (DataInputStream keyInputStream = new DataInputStream(new FileInputStream(tokenFile))) {
                 int newCurrentToken = keyInputStream.readInt();
                 long newNextUpdate = keyInputStream.readLong();
-                SecretKey[] newKeys = new SecretKey[TOKEN_BUFFER_SIZE];
-                for (int i = 0; i < newKeys.length; i++) {
+                AtomicReferenceArray<SecretKey> newKeys = new AtomicReferenceArray<>(TOKEN_BUFFER_SIZE);
+                for (int i = 0; i < newKeys.length(); i++) {
                     int isNull = keyInputStream.readInt();
                     if (isNull == 1) {
                         int l = keyInputStream.readInt();
                         byte[] b = new byte[l];
-                        keyInputStream.read(b);
-                        newKeys[i] = new SecretKeySpec(b, HMAC_SHA1);
+                        int offset = 0;
+                        int bytesRead = -1;
+                        do {
+                            bytesRead = keyInputStream.read(b, offset, b.length - offset);
+                            offset += bytesRead;
+                        } while (bytesRead != -1 && offset < b.length);
+                        newKeys.set(i, new SecretKeySpec(b, HMAC_SHA1));
                     } else {
-                        newKeys[i] = null;
+                        newKeys.set(i, null);
                     }
                 }
 
@@ -366,27 +350,15 @@ class TokenStore {
 
             } catch (IOException e) {
 
-                log.error("Failed to load cookie keys " + e.getMessage());
+                log.error("Failed to load cookie keys {}", e.getMessage());
 
-            } finally {
 
-                if (keyInputStream != null) {
-                    try {
-                        keyInputStream.close();
-                    } catch (IOException e) {
-                    }
-                } else if (fin != null) {
-                    try {
-                        fin.close();
-                    } catch (IOException e) {
-                    }
-                }
             }
         }
 
         // if there was a failure to read the current tokens, create new ones
         if (currentTokens == null) {
-            currentTokens = new SecretKey[TOKEN_BUFFER_SIZE];
+            currentTokens = new AtomicReferenceArray<>(TOKEN_BUFFER_SIZE);
             nextUpdate = System.currentTimeMillis();
             currentToken = 0;
         }

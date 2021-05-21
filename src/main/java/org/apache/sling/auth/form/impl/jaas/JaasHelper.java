@@ -82,7 +82,7 @@ public class JaasHelper {
     private ServiceRegistration<?> registerLoginModuleFactory(BundleContext ctx, FormAuthenticationHandlerConfig config) {
         ServiceRegistration<?> reg = null;
         try {
-            Dictionary<String, Object> props = new Hashtable<String,Object>();
+            Dictionary<String, Object> props = new Hashtable<>(); // NOSONARs
             final String desc = "LoginModule Support for FormAuthenticationHandler";
             props.put(Constants.SERVICE_DESCRIPTION, desc);
             props.put(Constants.SERVICE_VENDOR, ctx.getBundle().getHeaders().get(Constants.BUNDLE_VENDOR));

@@ -21,6 +21,7 @@ package org.apache.sling.auth.form.impl;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
@@ -166,7 +167,7 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
      * The resource resolver factory used to resolve the login form as a resource
      */
     @Reference(policy = ReferencePolicy.DYNAMIC, cardinality = ReferenceCardinality.OPTIONAL)
-    private volatile ResourceResolverFactory resourceResolverFactory;
+    private volatile ResourceResolverFactory resourceResolverFactory; // NOSONAR
 
     /**
      * If true the login form will be presented when the token expires.
@@ -248,13 +249,11 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
                 Resource loginFormResource = resourceResolver.resolve(loginForm);
                 Servlet loginFormServlet = loginFormResource.adaptTo(Servlet.class);
                 if (loginFormServlet != null) {
-                    try {
                         loginFormServlet.service(request, response);
                         return true;
+                }
                     } catch (ServletException e) {
                         log.error("Failed to include the form: " + loginForm, e);
-                    }
-                }
             } catch (LoginException e) {
                 log.error(
                         "Unable to get a resource resolver to include for the login resource. Will redirect instead.");
@@ -265,7 +264,7 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
             }
         }
 
-        HashMap<String, String> params = new HashMap<String, String>();
+        HashMap<String, String> params = new HashMap<>();
         params.put(Authenticator.LOGIN_RESOURCE, resource);
 
         // append indication of previous login failure
@@ -445,13 +444,7 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
             try {
                 authData = null;
                 authData = tokenStore.encode(expires, authInfo.getUser());
-            } catch (InvalidKeyException e) {
-                log.error(e.getMessage(), e);
-            } catch (IllegalStateException e) {
-                log.error(e.getMessage(), e);
-            } catch (UnsupportedEncodingException e) {
-                log.error(e.getMessage(), e);
-            } catch (NoSuchAlgorithmException e) {
+            } catch (InvalidKeyException | IllegalStateException | NoSuchAlgorithmException e) {
                 log.error(e.getMessage(), e);
             }
 
@@ -569,7 +562,7 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
      */
     @Activate
     protected void activate(FormAuthenticationHandlerConfig config, ComponentContext componentContext)
-            throws InvalidKeyException, NoSuchAlgorithmException, IllegalStateException, UnsupportedEncodingException {
+            throws InvalidKeyException, NoSuchAlgorithmException, IllegalStateException {
 
         this.jaasHelper = new JaasHelper(this, componentContext.getBundleContext(), config);
         this.loginForm = config.form_login_form();
@@ -582,8 +575,8 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
             defaultCookieDomain = null;
         }
 
-        final String authStorage = config.form_auth_storage();
-        if (FormAuthenticationHandlerConfig.AUTH_STORAGE_SESSION_ATTRIBUTE.equals(authStorage)) {
+        final String formAuthStorage = config.form_auth_storage();
+        if (FormAuthenticationHandlerConfig.AUTH_STORAGE_SESSION_ATTRIBUTE.equals(formAuthStorage)) {
             this.authStorage = new SessionStorage(authName);
             log.info("Using HTTP Session store with attribute name {}", authName);
         } else {
@@ -685,7 +678,7 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
     String getUserId(final String authData) {
         if (authData != null) {
             String[] parts = TokenStore.split(authData);
-            if (parts != null) {
+            if (parts.length == 3) {
                 return parts[2];
             }
         }
@@ -705,7 +698,7 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
             updateCookie = true;
         } else {
             String[] parts = TokenStore.split(authData);
-            if (parts != null && parts.length == 3) {
+            if (parts.length == 3) {
                 long cookieTime = Long.parseLong(parts[1].substring(1));
                 if (System.currentTimeMillis() + (sessionTimeout / 2) > cookieTime) {
                     updateCookie = true;
@@ -764,11 +757,7 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
                         // from it and reverse the base64 encoding
                         String value = cookie.getValue();
                         if (value.length() > 0) {
-                            try {
-                                return new String(Base64.decodeBase64(value), "UTF-8");
-                            } catch (UnsupportedEncodingException e1) {
-                                throw new RuntimeException(e1);
-                            }
+                            return new String(Base64.decodeBase64(value), StandardCharsets.UTF_8);
                         }
                     }
                 }
@@ -781,12 +770,7 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
         public void set(HttpServletRequest request, HttpServletResponse response, String authData,
                 AuthenticationInfo info) {
             // base64 encode to handle any special characters
-            String cookieValue;
-            try {
-                cookieValue = Base64.encodeBase64URLSafeString(authData.getBytes("UTF-8"));
-            } catch (UnsupportedEncodingException e1) {
-                throw new RuntimeException(e1);
-            }
+            String cookieValue = Base64.encodeBase64URLSafeString(authData.getBytes(StandardCharsets.UTF_8));
 
             // send the cookie to the response
             String cookieDomain = (String) info.get(COOKIE_DOMAIN);

@@ -38,6 +38,7 @@ final class FormLoginModule extends AbstractLoginModule {
     /**
      * The set of supported credentials. required by the {@link org.apache.jackrabbit.oak.spi.security.authentication.AbstractLoginModule}
      */
+    @SuppressWarnings("rawtypes")
     private static final Set<Class> SUPPORTED_CREDENTIALS = Collections.<Class>singleton(FormCredentials.class);
     private static final char[] EMPTY_PWD = new char[0];
 
@@ -46,6 +47,7 @@ final class FormLoginModule extends AbstractLoginModule {
      */
     private String userId;
 
+    @SuppressWarnings("rawtypes")
     @Override
     protected Set<Class> getSupportedCredentials() {
         return SUPPORTED_CREDENTIALS;
@@ -63,6 +65,7 @@ final class FormLoginModule extends AbstractLoginModule {
 
     @SuppressWarnings("unchecked")
     public boolean login() throws LoginException {
+        boolean succeeded = false;
         Credentials credentials = getCredentials();
         if (credentials instanceof FormCredentials) {
             FormCredentials cred = (FormCredentials) credentials;
@@ -70,10 +73,8 @@ final class FormLoginModule extends AbstractLoginModule {
 
             if (!authHandler.isValid(cred)){
                 log.debug("Invalid credentials");
-                return false;
-            }
 
-            if (userId == null) {
+            } else if (userId == null) {
                 log.debug("Could not extract userId/credentials");
             } else {
                 // we just set the login name and rely on the following login modules to populate the subject
@@ -83,7 +84,7 @@ final class FormLoginModule extends AbstractLoginModule {
                 log.debug("login succeeded with trusted user: {}", userId);
             }
         }
-        return false;
+        return succeeded;
     }
 
     public boolean commit() throws LoginException {

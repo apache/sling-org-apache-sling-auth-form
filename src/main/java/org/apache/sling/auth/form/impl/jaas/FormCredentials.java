@@ -22,6 +22,7 @@ package org.apache.sling.auth.form.impl.jaas;
 import javax.jcr.Credentials;
 
 public class FormCredentials implements Credentials {
+    private static final long serialVersionUID = -1813012094053361438L;
     private final String userId;
     private final String authData;
 

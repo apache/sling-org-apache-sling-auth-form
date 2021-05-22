@@ -66,18 +66,18 @@ final class FormLoginModulePlugin implements LoginModulePlugin {
      *         the {@link FormAuthenticationHandler} to unregister the service
      *         on shutdown.
      */
-    static ServiceRegistration register(
+    static ServiceRegistration<LoginModulePlugin> register(
             final FormAuthenticationHandler authHandler,
             final BundleContext bundleContext) {
         FormLoginModulePlugin plugin = new FormLoginModulePlugin(authHandler);
 
-        Hashtable<String, Object> properties = new Hashtable<String, Object>();
+        Hashtable<String, Object> properties = new Hashtable<>(); // NOSONAR
         properties.put(Constants.SERVICE_DESCRIPTION,
             "LoginModulePlugin Support for FormAuthenticationHandler");
         properties.put(Constants.SERVICE_VENDOR,
             bundleContext.getBundle().getHeaders().get(Constants.BUNDLE_VENDOR));
 
-        return bundleContext.registerService(LoginModulePlugin.class.getName(),
+        return bundleContext.registerService(LoginModulePlugin.class,
             plugin, properties);
     }
 
@@ -107,9 +107,9 @@ final class FormLoginModulePlugin implements LoginModulePlugin {
     /**
      * This implementation does nothing.
      */
-    @SuppressWarnings("unchecked")
     public void doInit(CallbackHandler callbackHandler, Session session,
-            Map options) {
+            @SuppressWarnings("rawtypes") Map options) {
+        // no-op
     }
 
     /**
@@ -123,8 +123,8 @@ final class FormLoginModulePlugin implements LoginModulePlugin {
     /**
      * This implementation does nothing.
      */
-    @SuppressWarnings("unchecked")
-    public void addPrincipals(@SuppressWarnings("unused") Set principals) {
+    public void addPrincipals(@SuppressWarnings({ "unused", "rawtypes" }) Set principals) {
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -136,11 +136,7 @@ final class FormLoginModulePlugin implements LoginModulePlugin {
      */
     public AuthenticationPlugin getAuthentication(Principal principal,
             Credentials creds) {
-        return new AuthenticationPlugin() {
-            public boolean authenticate(Credentials credentials) {
-                return authHandler.isValid(credentials);
-            }
-        };
+        return authHandler::isValid;
     }
 
     /**

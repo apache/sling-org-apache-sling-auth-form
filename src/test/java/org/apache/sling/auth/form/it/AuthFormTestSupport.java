@@ -28,6 +28,7 @@ import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 import static org.ops4j.pax.exam.CoreOptions.options;
 import static org.ops4j.pax.exam.CoreOptions.streamBundle;
 import static org.ops4j.pax.exam.CoreOptions.vmOption;
+import static org.ops4j.pax.exam.CoreOptions.when;
 import static org.ops4j.pax.exam.cm.ConfigurationAdminOptions.factoryConfiguration;
 import static org.ops4j.pax.tinybundles.core.TinyBundles.withBnd;
 
@@ -73,10 +74,23 @@ public abstract class AuthFormTestSupport extends TestSupport {
 
     @Configuration
     public Option[] configuration() throws IOException {
+        final String vmOpt = System.getProperty("pax.vm.options");
+        VMOption vmOption = null;
+        if (vmOpt != null && !vmOpt.isEmpty()) {
+            vmOption = new VMOption(vmOpt);
+        }
+
+        final String jacocoOpt = System.getProperty("jacoco.command");
+        VMOption jacocoCommand = null;
+        if (jacocoOpt != null && !jacocoOpt.isEmpty()) {
+            jacocoCommand = new VMOption(jacocoOpt);
+        }
+
         return options(
             composite(
                 super.baseConfiguration(),
-                vmOption(System.getProperty("pax.vm.options")),
+                when(vmOption != null).useOptions(vmOption),
+                when(jacocoCommand != null).useOptions(jacocoCommand),
                 optionalRemoteDebug(),
                 slingQuickstart(),
                 testBundle("bundle.filename"),
@@ -97,7 +111,7 @@ public abstract class AuthFormTestSupport extends TestSupport {
         );
     }
 
-    protected Option[] additionalOptions() throws IOException {
+    protected Option[] additionalOptions() throws IOException { // NOSONAR
         return new Option[]{};
     }
 

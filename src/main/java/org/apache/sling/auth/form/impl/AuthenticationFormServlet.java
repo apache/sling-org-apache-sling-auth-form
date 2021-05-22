@@ -35,7 +35,7 @@ import org.osgi.service.component.annotations.Component;
         "service.description=Default Login Form for Form Based Authentication" })
 public class AuthenticationFormServlet extends AbstractAuthenticationFormServlet {
 
-    public static final String SERVLET_PATH = "/system/sling/form/login";
+    public static final String SERVLET_PATH = "/system/sling/form/login"; // NOSONAR
     public static final String AUTH_REQUIREMENTS = "-" + SERVLET_PATH;
 
     private static final long serialVersionUID = -1497963620502763188L;

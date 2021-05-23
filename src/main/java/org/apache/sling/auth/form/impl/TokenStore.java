@@ -62,7 +62,7 @@ class TokenStore {
      * The name of the HMAC function to calculate the hash code of the payload
      * with the secure token.
      */
-    private static final String HMAC_SHA1 = "HmacSHA1";
+    private static final String HMAC_SHA256 = "HmacSHA256";
 
     /**
      * String encoding to convert byte arrays to strings and vice-versa.
@@ -142,8 +142,8 @@ class TokenStore {
         }
         byte[] b = new byte[20];
         random.nextBytes(b);
-        final SecretKey secretKey = new SecretKeySpec(b, HMAC_SHA1);
-        final Mac m = Mac.getInstance(HMAC_SHA1);
+        final SecretKey secretKey = new SecretKeySpec(b, HMAC_SHA256);
+        final Mac m = Mac.getInstance(HMAC_SHA256);
         m.init(secretKey);
         m.update(UTF_8.getBytes(StandardCharsets.UTF_8));
         m.doFinal();
@@ -172,7 +172,7 @@ class TokenStore {
 
         String cookiePayload = String.valueOf(token) + String.valueOf(expires)
             + "@" + userId;
-        Mac m = Mac.getInstance(HMAC_SHA1);
+        Mac m = Mac.getInstance(HMAC_SHA256);
         m.init(key);
         m.update(cookiePayload.getBytes(StandardCharsets.UTF_8));
         String cookieValue = byteToHex(m.doFinal());
@@ -272,7 +272,7 @@ class TokenStore {
             byte[] b = new byte[20];
             random.nextBytes(b);
 
-            SecretKey newToken = new SecretKeySpec(b, HMAC_SHA1);
+            SecretKey newToken = new SecretKeySpec(b, HMAC_SHA256);
             int nextToken = currentToken + 1;
             if (nextToken == currentTokens.length()) {
                 nextToken = 0;
@@ -337,7 +337,7 @@ class TokenStore {
                             bytesRead = keyInputStream.read(b, offset, b.length - offset);
                             offset += bytesRead;
                         } while (bytesRead != -1 && offset < b.length);
-                        newKeys.set(i, new SecretKeySpec(b, HMAC_SHA1));
+                        newKeys.set(i, new SecretKeySpec(b, HMAC_SHA256));
                     } else {
                         newKeys.set(i, null);
                     }
@@ -401,9 +401,9 @@ class TokenStore {
         final MessageDigest md;
 
         try {
-            md = MessageDigest.getInstance("SHA");
+            md = MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException nsae) {
-            throw new InternalError("internal error: SHA-1 not available.");
+            throw new InternalError("internal error: SHA-256 not available.");
         }
 
         // update with XorShifted time values

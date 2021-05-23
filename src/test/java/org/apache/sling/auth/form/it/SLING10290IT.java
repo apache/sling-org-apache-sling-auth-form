@@ -34,6 +34,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Dictionary;
 import java.util.List;
 
@@ -43,6 +44,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -55,7 +58,7 @@ import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.cookie.DefaultCookieSpec;
+import org.apache.http.impl.cookie.RFC6265StrictSpec;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.junit.After;
@@ -143,6 +146,8 @@ public class SLING10290IT extends AuthFormTestSupport {
         // prepare the http client for the test user
         httpContext = HttpClientContext.create();
         httpContext.setCookieStore(new BasicCookieStore());
+        RequestConfig requestConfig = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD_STRICT).build();
+        httpContext.setRequestConfig(requestConfig);
         httpClient = HttpClients.custom()
                 .disableRedirectHandling()
                 .build();
@@ -159,6 +164,32 @@ public class SLING10290IT extends AuthFormTestSupport {
         // clear out other state
         httpContext = null;
         baseServerUri = null;
+    }
+
+    @Test
+    public void testLoginFormRenders() throws IOException {
+        HttpGet loginformRequest = new HttpGet(String.format("%s/system/sling/form/login", baseServerUri));
+        try (CloseableHttpResponse loginformResponse = httpClient.execute(loginformRequest, httpContext)) {
+            assertEquals(HttpServletResponse.SC_OK, loginformResponse.getStatusLine().getStatusCode());
+            String content = EntityUtils.toString(loginformResponse.getEntity());
+            assertTrue(content.contains("Login to Apache Sling"));
+            assertTrue(content.contains("loginform"));
+        }
+    }
+
+    @Test
+    public void testLogout() throws IOException, MalformedCookieException {
+        doFormsLogin();
+        HttpGet logoutRequest = new HttpGet(String.format("%s/system/sling/logout", baseServerUri));
+        try (CloseableHttpResponse logoutResponse = httpClient.execute(logoutRequest, httpContext)) {
+            assertEquals(HttpServletResponse.SC_MOVED_TEMPORARILY, logoutResponse.getStatusLine().getStatusCode());
+            Cookie parsedFormauthCookie = parseFormAuthCookieFromHeaders(logoutResponse);
+            assertNotNull("Expected a formauth cookie in the response", parsedFormauthCookie);
+            assertEquals("Expected the formauth cookie value to be empty", "", parsedFormauthCookie.getValue());
+            assertTrue("Expected the formauth cookie to be expired", parsedFormauthCookie.isExpired(new Date()));
+            Cookie formauthCookie2 = getFormAuthCookieFromCookieStore();
+            assertNull("Did not expected a formauth cookie in the cookie store", formauthCookie2);
+        }
     }
 
     /**
@@ -349,7 +380,7 @@ public class SLING10290IT extends AuthFormTestSupport {
         assertNotNull(cookieHeaders);
 
         Cookie parsedFormauthCookie = null;
-        CookieSpec cookieSpec = new DefaultCookieSpec();
+        CookieSpec cookieSpec = new RFC6265StrictSpec();
         CookieOrigin origin = new CookieOrigin(baseServerUri.getHost(), baseServerUri.getPort(),
                 baseServerUri.getPath(), "https".equals(baseServerUri.getScheme()));
         for (Header cookieHeader : cookieHeaders) {

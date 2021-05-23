@@ -28,11 +28,15 @@ public class FormReasonTest {
     @Test public void testTimeout() {
         assertEquals(FormReason.TIMEOUT,
             FormReason.valueOf(FormReason.TIMEOUT.name()));
+        assertEquals("Session timed out, please login again", 
+                FormReason.TIMEOUT.toString());
     }
 
     @Test public void testInvalidCredentials() {
         assertEquals(FormReason.INVALID_CREDENTIALS,
             FormReason.valueOf(FormReason.INVALID_CREDENTIALS.name()));
+        assertEquals("Username and Password do not match", 
+                FormReason.INVALID_CREDENTIALS.toString());
     }
 
     @Test public void testInvalid() {

@@ -804,8 +804,13 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
             }
 
             if (!isValidCookieDomain(request, oldCookieDomain)) {
-                log.warn("The client supplied domain cookie value was invalid, will try clearing the cookies with the default cookie domain instead");
-                oldCookieDomain = defaultCookieDomain;
+                if (!isValidCookieDomain(request, defaultCookieDomain)) {
+                    log.warn("The client supplied domain cookie value was invalid and the configured default cookie domain is also invalid. Will try clearing the cookies without a domain instead");
+                    oldCookieDomain = null;
+                } else {
+                    log.warn("The client supplied domain cookie value was invalid. Will try clearing the cookies with the default cookie domain instead");
+                    oldCookieDomain = defaultCookieDomain;
+                }
             }
 
             // remove the old cookie from the client

@@ -846,7 +846,7 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
 
             Cookie c = new Cookie(name, value);
             c.setPath(cookiePath);
-            c.setHttpOnly(false); // don't allow JS access
+            c.setHttpOnly(true); // don't allow JS access
 
             // set the cookie domain if so configured
             if (domain != null) {

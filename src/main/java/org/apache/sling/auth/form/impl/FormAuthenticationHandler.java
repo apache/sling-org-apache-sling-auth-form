@@ -728,14 +728,7 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
      * in an HTTP Cookie.
      */
     private static class CookieStorage implements AuthenticationStorage {
-
-        /**
-         * The Set-Cookie header used to manage the login cookie.
-         *
-         * @see CookieStorage#setCookie(HttpServletRequest, HttpServletResponse, String,
-         *      String, int, String)
-         */
-        private static final String HEADER_SET_COOKIE = "Set-Cookie";
+        private final Logger log = LoggerFactory.getLogger(getClass());
 
         private final String cookieName;
         private final String domainCookieName;
@@ -777,6 +770,12 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
             if (cookieDomain == null || cookieDomain.length() == 0) {
                 cookieDomain = defaultCookieDomain;
             }
+
+            if (!isValidCookieDomain(request, cookieDomain)) {
+                log.warn("Sending formauth cookies without a cookie domain because the configured value is invalid for the request");
+                cookieDomain = null;
+            }
+
             setCookie(request, response, this.cookieName, cookieValue, -1, cookieDomain);
 
             // send the cookie domain cookie if domain is not null
@@ -797,7 +796,20 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
                         oldCookie = cookie;
                     } else if (this.domainCookieName.equals(cookie.getName())) {
                         oldCookieDomain = cookie.getValue();
+                        if (oldCookieDomain.length() == 0) {
+                            oldCookieDomain = null;
+                        }
                     }
+                }
+            }
+
+            if (!isValidCookieDomain(request, oldCookieDomain)) {
+                if (!isValidCookieDomain(request, defaultCookieDomain)) {
+                    log.warn("The client supplied domain cookie value was invalid and the configured default cookie domain is also invalid. Will try clearing the cookies without a domain instead");
+                    oldCookieDomain = null;
+                } else {
+                    log.warn("The client supplied domain cookie value was invalid. Will try clearing the cookies with the default cookie domain instead");
+                    oldCookieDomain = defaultCookieDomain;
                 }
             }
 
@@ -810,42 +822,51 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
             }
         }
 
+        /**
+         * Validates that the cookie domain is valid for the request host
+         * 
+         * @param request the current request
+         * @param cookieDomain the candidate cookie domain value
+         * @return true if valid, false otherwise
+         */
+        private boolean isValidCookieDomain(HttpServletRequest request, String cookieDomain) {
+            boolean valid = false;
+            if (cookieDomain == null) {
+                valid = true;
+            } else {
+                // a valid cookie domain must be a suffix of the host
+                String host = request.getServerName();
+                if (host.endsWith(cookieDomain)) {
+                    valid = true;
+                }
+            }
+            return valid;
+        }
+
         private void setCookie(final HttpServletRequest request, final HttpServletResponse response, final String name,
                 final String value, final int age, final String domain) {
 
             final String ctxPath = request.getContextPath();
             final String cookiePath = (ctxPath == null || ctxPath.length() == 0) ? "/" : ctxPath;
 
-            /*
-             * The Servlet Spec 2.5 does not allow us to set the commonly used HttpOnly
-             * attribute on cookies (Servlet API 3.0 does) so we create the Set-Cookie
-             * header manually. See http://www.owasp.org/index.php/HttpOnly for information
-             * on what the HttpOnly attribute is used for.
-             */
-
-            final StringBuilder header = new StringBuilder();
-
-            // default setup with name, value, cookie path and HttpOnly
-            header.append(name).append("=").append(value);
-            header.append("; Path=").append(cookiePath);
-            header.append("; HttpOnly"); // don't allow JS access
+            Cookie c = new Cookie(name, value);
+            c.setPath(cookiePath);
+            c.setHttpOnly(true); // don't allow JS access
 
             // set the cookie domain if so configured
             if (domain != null) {
-                header.append("; Domain=").append(domain);
+                c.setDomain(domain);
             }
 
             // Only set the Max-Age attribute to remove the cookie
             if (age >= 0) {
-                header.append("; Max-Age=").append(age);
+                c.setMaxAge(age);
             }
 
             // ensure the cookie is secured if this is an https request
-            if (request.isSecure()) {
-                header.append("; Secure");
-            }
+            c.setSecure(request.isSecure());
 
-            response.addHeader(HEADER_SET_COOKIE, header.toString());
+            response.addCookie(c);
         }
     }
 

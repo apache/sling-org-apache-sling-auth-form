@@ -130,12 +130,8 @@ public class SLING10421InvalidDomainIT extends AuthFormClientTestSupport {
 
     @Override
     protected void doFormsLogin() throws MalformedCookieException, IOException {
-        super.doFormsLogin(cookie -> { 
-                assertEquals("Expected a formauth cookie with domain equal to host", "localhost", cookie.getDomain());
-            },
-            domainCookie -> {
-                assertNull("Did not expect a formauth domain cookie", domainCookie);
-            });
+        super.doFormsLogin(cookie -> assertEquals("Expected a formauth cookie with domain equal to host", "localhost", cookie.getDomain()),
+                           domainCookie -> assertNull("Did not expect a formauth domain cookie", domainCookie));
     }
 
 }

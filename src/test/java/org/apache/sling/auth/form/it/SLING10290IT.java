@@ -89,7 +89,8 @@ public class SLING10290IT extends AuthFormClientTestSupport {
      */
     @Test
     public void testSetCookieOnFirstRequestAfterLogin() throws MalformedCookieException, IOException {
-        doFormsLogin();
+        doFormsLogin(cookie -> assertNotNull("Expected a formauth cookie", cookie),
+                     domainCookie -> assertNull("Did not expect a formauth domain cookie", domainCookie));
     }
 
     /**

@@ -104,7 +104,7 @@ public class JaasHelper {
                     props
             );
             log.info("Registered FormLoginModuleFactory");
-        } catch (Throwable e) {
+        } catch (Throwable e) { // NOSONAR
             log.error("unable to create an register the SSO login module factory", e);
         }
         return reg;
@@ -122,7 +122,7 @@ public class JaasHelper {
             ctx.getBundle().loadClass("org.apache.sling.auth.form.impl.jaas.FormLoginModule");
             log.debug("FormLoginModule available.");
             return true;
-        } catch (Throwable e) {
+        } catch (Throwable e) { // NOSONAR
             log.debug("no FormLoginModule available.", e);
         }
         return false;

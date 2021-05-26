@@ -604,7 +604,7 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
         if (!jaasHelper.enabled()) {
             try {
                 this.loginModule = FormLoginModulePlugin.register(this, componentContext.getBundleContext());
-            } catch (Throwable t) {
+            } catch (Throwable t) { //NOSONAR
                 log.info(
                         "Cannot register FormLoginModulePlugin. This is expected if Sling LoginModulePlugin services are not supported");
                 log.debug("dump", t);

@@ -25,6 +25,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -308,10 +310,12 @@ class TokenStore {
             }
         } catch (IOException e) {
             log.error("Failed to save cookie keys {}", e.getMessage());
-            }
-        if (!tmpTokenFile.renameTo(tokenFile)) {
-            log.error("Failed to rename the temporary token file");
+        }
 
+        try {
+            Files.move(tmpTokenFile.toPath(), tokenFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            log.error("Failed to rename the temporary token file", e);
         }
     }
 

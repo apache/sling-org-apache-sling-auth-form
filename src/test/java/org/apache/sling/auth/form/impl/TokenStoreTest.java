@@ -8,6 +8,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.file.Files;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
@@ -53,7 +54,7 @@ import org.junit.Test;
 
     @Before
     public void setup() throws IOException, InvalidKeyException, NoSuchAlgorithmException, IllegalStateException {
-        tokenFile = File.createTempFile(getClass().getName(), "tokenstore");
+        tokenFile = Files.createTempFile(getClass().getName(), "tokenstore").toFile();
         store = new TokenStore(tokenFile, SESSION_TIMEOUT_MSEC, DEFAULT_FAST_SEED);
         encodedToken = store.encode(DEFAULT_EXPIRATION_TIME_MSEC, USER_ID);
     }

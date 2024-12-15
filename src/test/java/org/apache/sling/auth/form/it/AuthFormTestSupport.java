@@ -94,6 +94,11 @@ public abstract class AuthFormTestSupport extends TestSupport {
                 optionalRemoteDebug(),
                 slingQuickstart(),
                 testBundle("bundle.filename"),
+                // testing - ensure that the /content path is accessible to everyone
+                //   NOTE: required since update to o.a.sling.testing.paxexam 4.x as the 3.x version already did this step
+                factoryConfiguration("org.apache.sling.jcr.repoinit.RepositoryInitializer")
+                    .put("scripts", new String[]{"create path (sling:OrderedFolder) /content\nset ACL for everyone\n      allow   jcr:read    on /content\n  end"})
+                    .asOption(),
                 // testing - add a user to use to login and verify the content loading has happened
                 factoryConfiguration("org.apache.sling.jcr.repoinit.RepositoryInitializer")
                     .put("scripts", new String[] {

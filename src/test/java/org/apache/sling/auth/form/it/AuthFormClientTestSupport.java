@@ -18,7 +18,8 @@
  */
 package org.apache.sling.auth.form.it;
 
-import static org.apache.sling.testing.paxexam.SlingOptions.slingScriptingSightly;
+import static org.apache.sling.testing.paxexam.SlingOptions.slingScriptingHtl;
+import static org.apache.sling.testing.paxexam.SlingOptions.slingBundleresource;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -90,7 +91,8 @@ public abstract class AuthFormClientTestSupport extends AuthFormTestSupport {
 
         return new Option[]{
             // add sightly support for the test script
-            slingScriptingSightly(),
+            slingScriptingHtl(),
+            slingBundleresource(),
 
             // add the test script tinybundle
             bundle,

@@ -86,6 +86,15 @@ public abstract class AuthFormTestSupport extends TestSupport {
             jacocoCommand = new VMOption(jacocoOpt);
         }
 
+        // SLING-12573 - Java 21 support was added in ASM 9.5
+        //   NOTE: remove this block when the versionResolver defaults to this version of asm* or later
+        versionResolver.setVersion("org.ow2.asm", "asm", "9.5");
+        versionResolver.setVersion("org.ow2.asm", "asm-analysis", "9.5");
+        versionResolver.setVersion("org.ow2.asm", "asm", "9.5");
+        versionResolver.setVersion("org.ow2.asm", "asm-commons", "9.5");
+        versionResolver.setVersion("org.ow2.asm", "asm-util", "9.5");
+        versionResolver.setVersion("org.ow2.asm", "asm-tree", "9.5");
+
         return options(
             composite(
                 super.baseConfiguration(),

@@ -86,6 +86,15 @@ public abstract class AuthFormTestSupport extends TestSupport {
             jacocoCommand = new VMOption(jacocoOpt);
         }
 
+        // SLING-12573 - Java 21 support was added in ASM 9.5
+        //   NOTE: remove this block when the versionResolver defaults to this version of asm* or later
+        versionResolver.setVersion("org.ow2.asm", "asm", "9.5");
+        versionResolver.setVersion("org.ow2.asm", "asm-analysis", "9.5");
+        versionResolver.setVersion("org.ow2.asm", "asm", "9.5");
+        versionResolver.setVersion("org.ow2.asm", "asm-commons", "9.5");
+        versionResolver.setVersion("org.ow2.asm", "asm-util", "9.5");
+        versionResolver.setVersion("org.ow2.asm", "asm-tree", "9.5");
+
         return options(
             composite(
                 super.baseConfiguration(),
@@ -94,6 +103,11 @@ public abstract class AuthFormTestSupport extends TestSupport {
                 optionalRemoteDebug(),
                 slingQuickstart(),
                 testBundle("bundle.filename"),
+                // testing - ensure that the /content path is accessible to everyone
+                //   NOTE: required since update to o.a.sling.testing.paxexam 4.x as the 3.x version already did this step
+                factoryConfiguration("org.apache.sling.jcr.repoinit.RepositoryInitializer")
+                    .put("scripts", new String[]{"create path (sling:OrderedFolder) /content\nset ACL for everyone\n      allow   jcr:read    on /content\n  end"})
+                    .asOption(),
                 // testing - add a user to use to login and verify the content loading has happened
                 factoryConfiguration("org.apache.sling.jcr.repoinit.RepositoryInitializer")
                     .put("scripts", new String[] {

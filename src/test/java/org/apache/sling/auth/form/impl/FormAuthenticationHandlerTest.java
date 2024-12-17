@@ -18,69 +18,67 @@
  */
 package org.apache.sling.auth.form.impl;
 
-import static org.easymock.EasyMock.cmpEq;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
-import java.lang.reflect.Method;
+import java.util.Collections;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.sling.api.auth.Authenticator;
 import org.apache.sling.auth.core.spi.AuthenticationInfo;
-import org.apache.sling.auth.core.spi.DefaultAuthenticationFeedbackHandler;
-import org.hamcrest.Description;
-import org.hamcrest.core.StringStartsWith;
-import org.jmock.Expectations;
-import org.jmock.Mockery;
-import org.jmock.api.Action;
-import org.jmock.api.Invocation;
+import org.apache.sling.testing.mock.osgi.MockBundle;
+import org.apache.sling.testing.mock.osgi.junit.OsgiContext;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.osgi.framework.BundleContext;
-import org.powermock.api.easymock.PowerMock;
-import org.powermock.api.support.membermodification.MemberMatcher;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.osgi.framework.Constants;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(FormAuthenticationHandler.class)
-@PowerMockIgnore("jdk.internal.reflect.*")
 public class FormAuthenticationHandlerTest {
 
+    @Rule
+    public final OsgiContext context = new OsgiContext();
+
+    @Before
+    public void before() {
+        // workaround the downstream code requiring the bundle context to have a vender header
+        MockBundle mockBundle = (MockBundle) context.bundleContext().getBundle();
+        mockBundle.setHeaders(Collections.singletonMap(Constants.BUNDLE_VENDOR, "Testing"));
+    }
+
     @Test public void testGetTokenFile() {
-        final File root = new File("bundle999").getAbsoluteFile();
-        final SlingHomeAction slingHome = new SlingHomeAction();
-        slingHome.setSlingHome(new File("sling").getAbsolutePath());
+      final File root = new File("bundle999").getAbsoluteFile();
+      final String slingHome = new File("sling").getAbsolutePath();
+      final BundleContext bundleContext = spy(context.bundleContext());
 
-        Mockery context = new Mockery();
-        final BundleContext bundleContext = context.mock(BundleContext.class);
+      // mock access to sling.home framework property
+      when(bundleContext.getProperty("sling.home"))
+          .thenReturn(slingHome);
+      // mock data file support
+      when(bundleContext.getDataFile(anyString()))
+          .thenAnswer(invocation -> {
+              String data = (String) invocation.getArgument(0);
+              // mock no data file support with file names starting with sl
+              if (data.startsWith("sl")) {
+                  return null;
+              }
 
-        context.checking(new Expectations() {
-            {
-                // mock access to sling.home framework property
-                allowing(bundleContext).getProperty("sling.home");
-                will(slingHome);
+              // mock data file support for any other name
+              if (data.startsWith("/")) {
+                  data = data.substring(1);
+              }
+              return new File(root, data);
+          });
 
-                // mock no data file support with file names starting with sl
-                allowing(bundleContext).getDataFile(
-                    with(new StringStartsWith("sl")));
-                will(returnValue(null));
-
-                // mock data file support for any other name
-                allowing(bundleContext).getDataFile(with(any(String.class)));
-                will(new RVA(root));
-            }
-        });
-
-        final FormAuthenticationHandler handler = new FormAuthenticationHandler();
+        final FormAuthenticationHandler handler = context.registerInjectActivateService(FormAuthenticationHandler.class);
 
         // test files relative to bundle context
         File relFile0 = handler.getTokenFile("", bundleContext);
@@ -93,11 +91,12 @@ public class FormAuthenticationHandlerTest {
         // test file relative to sling.home if no data file support
         String relName2 = "sl/rel_to_sling.home";
         File relFile2 = handler.getTokenFile(relName2, bundleContext);
-        assertEquals(new File(slingHome.getSlingHome(), relName2), relFile2);
+        assertEquals(new File(slingHome, relName2), relFile2);
 
         // test file relative to current working directory
         String relName3 = "sl/test";
-        slingHome.setSlingHome(null);
+        when(bundleContext.getProperty("sling.home"))
+            .thenReturn(null);
         File relFile3 = handler.getTokenFile(relName3, bundleContext);
         assertEquals(new File(relName3).getAbsoluteFile(), relFile3);
 
@@ -108,7 +107,7 @@ public class FormAuthenticationHandlerTest {
     }
 
     @Test public void testGetUserid() {
-        final FormAuthenticationHandler handler = new FormAuthenticationHandler();
+        final FormAuthenticationHandler handler = context.registerInjectActivateService(FormAuthenticationHandler.class);
         assertEquals(null, handler.getUserId(null));
         assertEquals(null, handler.getUserId(""));
         assertEquals(null, handler.getUserId("field0"));
@@ -119,106 +118,37 @@ public class FormAuthenticationHandlerTest {
 
     /**
      * Test for SLING-3443 Parameter based redirection should only handle relative paths
-     * @throws Exception PowerMock.expectPrivate throws Exception and UrlEncoder.encode
-     *                          throws UnsupportedEncodingException
+     * @throws Exception UrlEncoder.encode throws UnsupportedEncodingException
      * @since 1.0.6
      */
     @Test public void testRedirectionAfterLogin() throws Exception {
         // Create mocks
-        final HttpServletRequest request = createMock(HttpServletRequest.class);
-        final HttpServletResponse response = createMock(HttpServletResponse.class);
-        final AuthenticationInfo authenticationInfo = createMock(AuthenticationInfo.class);
+        final HttpServletRequest request =  mock(HttpServletRequest.class);
+        final HttpServletResponse response = mock(HttpServletResponse.class);
+        final AuthenticationInfo authenticationInfo = mock(AuthenticationInfo.class);
 
-        // Use PowerMock to mock private method
-        final String methodName = "refreshAuthData";
-        final FormAuthenticationHandler authenticationHandler = PowerMock.createPartialMock(FormAuthenticationHandler.class,
-                methodName);
-        final Method[] methods = MemberMatcher.methods(FormAuthenticationHandler.class, methodName);
-        PowerMock.expectPrivate(authenticationHandler, methods[0], request, response, authenticationInfo);
-
-        // Mock the static method since we are just unit testing the authentication succeeded flow
-        PowerMock.mockStatic(DefaultAuthenticationFeedbackHandler.class);
-        expect(DefaultAuthenticationFeedbackHandler.handleRedirect(request, response)).andReturn(false);
+        final FormAuthenticationHandler authenticationHandler = context.registerInjectActivateService(FormAuthenticationHandler.class);
 
         // Mocks the Authenticator.LOGIN_RESOURCE attribute
         final String url = "http://www.blah.com";
-        expect(request.getAttribute(Authenticator.LOGIN_RESOURCE)).andReturn(url);
+        when(request.getAttribute(Authenticator.LOGIN_RESOURCE))
+            .thenReturn(url);
 
         // Mocks the HttpServletRequest and HttpServletResponse object
-        expect(request.getMethod()).andReturn("POST");
-        expect(request.getRequestURI()).andReturn("http://blah/blah/j_security_check");
+        when(request.getMethod()).thenReturn("POST");
+        when(request.getRequestURI()).thenReturn("http://blah/blah/j_security_check");
         String contextPath = "/blah"; // NOSONAR
-        expect(request.getContextPath()).andReturn(contextPath).anyTimes();
-        expect(response.isCommitted()).andReturn(false);
-
-        // Mocking method with void return type
-        response.resetBuffer();
-        expectLastCall().once();
-
-        // The request should be redirected to the context root rather than the
-        // passing the parameter directly
-        response.sendRedirect(cmpEq(contextPath));
-
-        // Replay the mocks
-        replay(request);
-        replay(response);
-        replay(authenticationInfo);
-        replay(authenticationHandler);
+        when(request.getContextPath()).thenReturn(contextPath);
+        when(response.isCommitted()).thenReturn(false);
 
         // Test the method
-        authenticationHandler.authenticationSucceeded(request, response, authenticationInfo);
+        assertTrue(authenticationHandler.authenticationSucceeded(request, response, authenticationInfo));
 
         // Verify mocks
-        verify(request, response, authenticationInfo, authenticationHandler);
+        verify(response).resetBuffer();
+        // The request should be redirected to the context root rather than the
+        // passing the parameter directly
+        verify(response).sendRedirect(contextPath);
     }
 
-    /**
-     * The <code>RVA</code> action returns a file relative to some root file as
-     * requested by the first parameter of the invocation, expecting the first
-     * parameter to be a string.
-     */
-    private static class RVA implements Action {
-
-        private final File root;
-
-        RVA(final File root) {
-            this.root = root;
-        }
-
-        public Object invoke(Invocation invocation) throws Throwable {
-            String data = (String) invocation.getParameter(0);
-            if (data.startsWith("/")) {
-                data = data.substring(1);
-            }
-            return new File(root, data);
-        }
-
-        public void describeTo(Description description) {
-            description.appendText("returns new File(root, arg0)");
-        }
-    }
-
-    /**
-     * The <code>SlingHomeAction</code> action returns the current value of the
-     * <code>slingHome</code> field on all invocations
-     */
-    private static class SlingHomeAction implements Action {
-        private String slingHome;
-
-        public void setSlingHome(String slingHome) {
-            this.slingHome = slingHome;
-        }
-
-        public String getSlingHome() {
-            return slingHome;
-        }
-
-        public Object invoke(Invocation invocation) throws Throwable {
-            return slingHome;
-        }
-
-        public void describeTo(Description description) {
-            description.appendText("returns " + slingHome);
-        }
-    }
 }

@@ -18,14 +18,6 @@
  */
 package org.apache.sling.auth.form.impl;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
-
 import javax.jcr.Credentials;
 import javax.jcr.SimpleCredentials;
 import javax.servlet.Servlet;
@@ -34,6 +26,14 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.sling.api.auth.Authenticator;
@@ -67,9 +67,11 @@ import org.slf4j.LoggerFactory;
  * The <code>FormAuthenticationHandler</code> class implements the authorization
  * steps based on a cookie.
  */
-@Component(name = "org.apache.sling.auth.form.FormAuthenticationHandler", property = {
-        AuthenticationHandler.TYPE_PROPERTY + "="
-                + HttpServletRequest.FORM_AUTH }, service = AuthenticationHandler.class, immediate = true)
+@Component(
+        name = "org.apache.sling.auth.form.FormAuthenticationHandler",
+        property = {AuthenticationHandler.TYPE_PROPERTY + "=" + HttpServletRequest.FORM_AUTH},
+        service = AuthenticationHandler.class,
+        immediate = true)
 @Designate(ocd = FormAuthenticationHandlerConfig.class)
 public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHandler implements AuthenticationHandler {
 
@@ -249,11 +251,11 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
                 Resource loginFormResource = resourceResolver.resolve(loginForm);
                 Servlet loginFormServlet = loginFormResource.adaptTo(Servlet.class);
                 if (loginFormServlet != null) {
-                        loginFormServlet.service(request, response);
-                        return true;
+                    loginFormServlet.service(request, response);
+                    return true;
                 }
-                    } catch (ServletException e) {
-                        log.error("Failed to include the form: " + loginForm, e);
+            } catch (ServletException e) {
+                log.error("Failed to include the form: " + loginForm, e);
             } catch (LoginException e) {
                 log.error(
                         "Unable to get a resource resolver to include for the login resource. Will redirect instead.");
@@ -272,14 +274,15 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
             if (request.getAttribute(FAILURE_REASON_CODE) != null) {
                 final Object jReasonCode = request.getAttribute(FAILURE_REASON_CODE);
                 @SuppressWarnings("rawtypes")
-                final String reasonCode = (jReasonCode instanceof Enum) ? ((Enum) jReasonCode).name() : jReasonCode.toString();
+                final String reasonCode =
+                        (jReasonCode instanceof Enum jReasonCodeEnum) ? jReasonCodeEnum.name() : jReasonCode.toString();
                 params.put(FAILURE_REASON_CODE, reasonCode);
             }
         } else {
             if (request.getAttribute(FAILURE_REASON) != null) {
                 final Object jReason = request.getAttribute(FAILURE_REASON);
                 @SuppressWarnings("rawtypes")
-                final String reason = (jReason instanceof Enum) ? ((Enum) jReason).name() : jReason.toString();
+                final String reason = (jReason instanceof Enum jReasonEnum) ? jReasonEnum.name() : jReason.toString();
                 params.put(FAILURE_REASON, reason);
             }
         }
@@ -310,8 +313,8 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
      * the HTTP Session attribute.
      */
     @Override
-    public void authenticationFailed(HttpServletRequest request, HttpServletResponse response,
-            AuthenticationInfo authInfo) {
+    public void authenticationFailed(
+            HttpServletRequest request, HttpServletResponse response, AuthenticationInfo authInfo) {
 
         /*
          * Note: This method is called if this handler provided credentials which cause
@@ -339,8 +342,8 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
      * authenticated any longer.
      */
     @Override
-    public boolean authenticationSucceeded(HttpServletRequest request, HttpServletResponse response,
-            AuthenticationInfo authInfo) {
+    public boolean authenticationSucceeded(
+            HttpServletRequest request, HttpServletResponse response, AuthenticationInfo authInfo) {
 
         /*
          * Note: This method is called if this handler provided credentials which
@@ -353,7 +356,8 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
         final boolean result;
         // SLING-1847: only consider a resource redirect if this is a POST request
         // to the j_security_check URL
-        if (REQUEST_METHOD.equals(request.getMethod()) && request.getRequestURI().endsWith(REQUEST_URL_SUFFIX)) {
+        if (REQUEST_METHOD.equals(request.getMethod())
+                && request.getRequestURI().endsWith(REQUEST_URL_SUFFIX)) {
 
             if (DefaultAuthenticationFeedbackHandler.handleRedirect(request, response)) {
                 // terminate request, all done in the default handler
@@ -429,8 +433,8 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
      * @param authInfo
      *            The authentication info used to successful log in
      */
-    private void refreshAuthData(final HttpServletRequest request, final HttpServletResponse response,
-            final AuthenticationInfo authInfo) {
+    private void refreshAuthData(
+            final HttpServletRequest request, final HttpServletResponse response, final AuthenticationInfo authInfo) {
 
         // get current authentication data, may be missing after first login
         String authData = getCookieAuthData(authInfo);
@@ -463,7 +467,8 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
 
         // only consider login form parameters if this is a POST request
         // to the j_security_check URL
-        if (REQUEST_METHOD.equals(request.getMethod()) && request.getRequestURI().endsWith(REQUEST_URL_SUFFIX)) {
+        if (REQUEST_METHOD.equals(request.getMethod())
+                && request.getRequestURI().endsWith(REQUEST_URL_SUFFIX)) {
 
             String user = request.getParameter(PAR_J_USERNAME);
             String pwd = request.getParameter(PAR_J_PASSWORD);
@@ -490,7 +495,7 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
     private AuthenticationInfo createAuthInfo(final String authData) {
         final String userId = getUserId(authData);
         if (userId == null) {
-            return null;
+            return null; // NOSONAR
         }
 
         final AuthenticationInfo info = new AuthenticationInfo(HttpServletRequest.FORM_AUTH, userId);
@@ -508,13 +513,13 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
         String authData = null;
         if (jaasHelper.enabled()) {
             Object credentials = info.get(JcrResourceConstants.AUTHENTICATION_INFO_CREDENTIALS);
-            if (credentials instanceof Credentials) {
-                authData = getCookieAuthData((Credentials)credentials);
+            if (credentials instanceof Credentials creds) {
+                authData = getCookieAuthData(creds);
             }
         } else {
             Object data = info.get(attrCookieAuthData);
-            if (data instanceof String) {
-                authData = (String) data;
+            if (data instanceof String strData) {
+                authData = strData;
             }
         }
         return authData;
@@ -523,13 +528,13 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
     // ---------- LoginModulePlugin support
 
     private String getCookieAuthData(final Credentials credentials) {
-        if (credentials instanceof SimpleCredentials) {
-            Object data = ((SimpleCredentials) credentials).getAttribute(attrCookieAuthData);
-            if (data instanceof String) {
-                return (String) data;
+        if (credentials instanceof SimpleCredentials simpleCreds) {
+            Object data = simpleCreds.getAttribute(attrCookieAuthData);
+            if (data instanceof String strData) {
+                return strData;
             }
-        } else if (credentials instanceof FormCredentials) {
-            return ((FormCredentials) credentials).getAuthData();
+        } else if (credentials instanceof FormCredentials creds) {
+            return creds.getAuthData();
         }
 
         // no SimpleCredentials or no valid attribute
@@ -604,7 +609,7 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
         if (!jaasHelper.enabled()) {
             try {
                 this.loginModule = FormLoginModulePlugin.register(this, componentContext.getBundleContext());
-            } catch (Throwable t) { //NOSONAR
+            } catch (Throwable t) { // NOSONAR
                 log.info(
                         "Cannot register FormLoginModulePlugin. This is expected if Sling LoginModulePlugin services are not supported");
                 log.debug("dump", t);
@@ -614,7 +619,7 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
         this.includeLoginForm = config.useInclude();
 
         this.loginAfterExpire = config.form_onexpire_login();
-        
+
         this.preferReasonCode = config.preferReasonCode();
     }
 
@@ -760,8 +765,8 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
         }
 
         @Override
-        public void set(HttpServletRequest request, HttpServletResponse response, String authData,
-                AuthenticationInfo info) {
+        public void set(
+                HttpServletRequest request, HttpServletResponse response, String authData, AuthenticationInfo info) {
             // base64 encode to handle any special characters
             String cookieValue = Base64.encodeBase64URLSafeString(authData.getBytes(StandardCharsets.UTF_8));
 
@@ -772,7 +777,8 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
             }
 
             if (!isValidCookieDomain(request, cookieDomain)) {
-                log.warn("Sending formauth cookies without a cookie domain because the configured value is invalid for the request");
+                log.warn(
+                        "Sending formauth cookies without a cookie domain because the configured value is invalid for the request");
                 cookieDomain = null;
             }
 
@@ -805,10 +811,12 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
 
             if (!isValidCookieDomain(request, oldCookieDomain)) {
                 if (!isValidCookieDomain(request, defaultCookieDomain)) {
-                    log.warn("The client supplied domain cookie value was invalid and the configured default cookie domain is also invalid. Will try clearing the cookies without a domain instead");
+                    log.warn(
+                            "The client supplied domain cookie value was invalid and the configured default cookie domain is also invalid. Will try clearing the cookies without a domain instead");
                     oldCookieDomain = null;
                 } else {
-                    log.warn("The client supplied domain cookie value was invalid. Will try clearing the cookies with the default cookie domain instead");
+                    log.warn(
+                            "The client supplied domain cookie value was invalid. Will try clearing the cookies with the default cookie domain instead");
                     oldCookieDomain = defaultCookieDomain;
                 }
             }
@@ -824,7 +832,7 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
 
         /**
          * Validates that the cookie domain is valid for the request host
-         * 
+         *
          * @param request the current request
          * @param cookieDomain the candidate cookie domain value
          * @return true if valid, false otherwise
@@ -843,8 +851,13 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
             return valid;
         }
 
-        private void setCookie(final HttpServletRequest request, final HttpServletResponse response, final String name,
-                final String value, final int age, final String domain) {
+        private void setCookie(
+                final HttpServletRequest request,
+                final HttpServletResponse response,
+                final String name,
+                final String value,
+                final int age,
+                final String domain) {
 
             final String ctxPath = request.getContextPath();
             final String cookiePath = (ctxPath == null || ctxPath.length() == 0) ? "/" : ctxPath;
@@ -886,16 +899,16 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
             HttpSession session = request.getSession(false);
             if (session != null) {
                 Object attribute = session.getAttribute(sessionAttributeName);
-                if (attribute instanceof String) {
-                    return (String) attribute;
+                if (attribute instanceof String strAttribute) {
+                    return strAttribute;
                 }
             }
             return null;
         }
 
         @Override
-        public void set(HttpServletRequest request, HttpServletResponse response, String authData,
-                AuthenticationInfo info) {
+        public void set(
+                HttpServletRequest request, HttpServletResponse response, String authData, AuthenticationInfo info) {
             // store the auth hash as a session attribute
             HttpSession session = request.getSession();
             session.setAttribute(sessionAttributeName, authData);
@@ -908,6 +921,5 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
                 session.removeAttribute(sessionAttributeName);
             }
         }
-
     }
 }

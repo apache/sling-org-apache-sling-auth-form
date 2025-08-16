@@ -30,9 +30,13 @@ import org.osgi.service.component.annotations.Component;
  * The <code>AuthenticationFormServlet</code> provides the default login form
  * used for Form Based Authentication.
  */
-@Component(service = Servlet.class, property = { "sling.auth.requirements=" + AuthenticationFormServlet.AUTH_REQUIREMENTS,
-        "sling.servlet.paths=" + AuthenticationFormServlet.SERVLET_PATH,
-        "service.description=Default Login Form for Form Based Authentication" })
+@Component(
+        service = Servlet.class,
+        property = {
+            "sling.auth.requirements=" + AuthenticationFormServlet.AUTH_REQUIREMENTS,
+            "sling.servlet.paths=" + AuthenticationFormServlet.SERVLET_PATH,
+            "service.description=Default Login Form for Form Based Authentication"
+        })
 public class AuthenticationFormServlet extends AbstractAuthenticationFormServlet {
 
     public static final String SERVLET_PATH = "/system/sling/form/login"; // NOSONAR
@@ -54,8 +58,8 @@ public class AuthenticationFormServlet extends AbstractAuthenticationFormServlet
     protected String getReason(final HttpServletRequest request) {
         // return the resource attribute if set to a non-empty string
         Object resObj = request.getAttribute(AuthenticationHandler.FAILURE_REASON);
-        if (resObj instanceof FormReason) {
-            return ((FormReason) resObj).toString();
+        if (resObj instanceof FormReason formReason) {
+            return formReason.toString();
         }
 
         final String reason = request.getParameter(AuthenticationHandler.FAILURE_REASON);

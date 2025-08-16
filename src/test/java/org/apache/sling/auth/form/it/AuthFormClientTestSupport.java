@@ -18,14 +18,8 @@
  */
 package org.apache.sling.auth.form.it;
 
-import static org.apache.sling.testing.paxexam.SlingOptions.slingScriptingHtl;
-import static org.apache.sling.testing.paxexam.SlingOptions.slingBundleresource;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.ops4j.pax.exam.cm.ConfigurationAdminOptions.factoryConfiguration;
+import javax.inject.Inject;
+import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.net.URI;
@@ -36,9 +30,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.List;
-
-import javax.inject.Inject;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -66,6 +57,15 @@ import org.ops4j.pax.exam.Option;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 
+import static org.apache.sling.testing.paxexam.SlingOptions.slingBundleresource;
+import static org.apache.sling.testing.paxexam.SlingOptions.slingScriptingHtl;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.ops4j.pax.exam.cm.ConfigurationAdminOptions.factoryConfiguration;
+
 /**
  * base class for tests doing http requests to verify forms auth
  */
@@ -89,38 +89,37 @@ public abstract class AuthFormClientTestSupport extends AuthFormTestSupport {
         final String bundleResourcesHeader = String.join(",", resourcePaths);
         final Option bundle = buildBundleResourcesBundle(bundleResourcesHeader, resourcePaths);
 
-        return new Option[]{
+        return new Option[] {
             // add sightly support for the test script
             slingScriptingHtl(),
             slingBundleresource(),
 
             // add the test script tinybundle
             bundle,
-
             newFormauthHandlerConfiguration(),
 
             // enable the healthcheck configuration for checking when the server is ready to
             //  receive http requests.  (adapted from the starter healthcheck.json configuration)
             factoryConfiguration("org.apache.felix.hc.generalchecks.FrameworkStartCheck")
-                .put("hc.tags", new String[] {"systemalive"})
-                .put("targetStartLevel", 5)
-                .asOption(),
+                    .put("hc.tags", new String[] {"systemalive"})
+                    .put("targetStartLevel", 5)
+                    .asOption(),
             factoryConfiguration("org.apache.felix.hc.generalchecks.ServicesCheck")
-                .put("hc.tags", new String[] {"systemalive"})
-                .put("services.list", new String[] {
+                    .put("hc.tags", new String[] {"systemalive"})
+                    .put("services.list", new String[] {
                         "org.apache.sling.jcr.api.SlingRepository",
                         "org.apache.sling.engine.auth.Authenticator",
                         "org.apache.sling.api.resource.ResourceResolverFactory",
                         "org.apache.sling.api.servlets.ServletResolver",
                         "javax.script.ScriptEngineManager"
-                })
-                .asOption(),
+                    })
+                    .asOption(),
             factoryConfiguration("org.apache.felix.hc.generalchecks.BundlesStartedCheck")
-                .put("hc.tags", new String[] {"bundles"})
-                .asOption(),
+                    .put("hc.tags", new String[] {"bundles"})
+                    .asOption(),
             factoryConfiguration("org.apache.sling.jcr.contentloader.hc.BundleContentLoadedCheck")
-                .put("hc.tags", new String[] {"bundles"})
-                .asOption(),
+                    .put("hc.tags", new String[] {"bundles"})
+                    .asOption(),
         };
     }
 
@@ -138,11 +137,11 @@ public abstract class AuthFormClientTestSupport extends AuthFormTestSupport {
         // prepare the http client for the test user
         httpContext = HttpClientContext.create();
         httpContext.setCookieStore(new BasicCookieStore());
-        RequestConfig requestConfig = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD_STRICT).build();
-        httpContext.setRequestConfig(requestConfig);
-        httpClient = HttpClients.custom()
-                .disableRedirectHandling()
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setCookieSpec(CookieSpecs.STANDARD_STRICT)
                 .build();
+        httpContext.setRequestConfig(requestConfig);
+        httpClient = HttpClients.custom().disableRedirectHandling().build();
     }
 
     @After
@@ -173,7 +172,7 @@ public abstract class AuthFormClientTestSupport extends AuthFormTestSupport {
             host = "localhost";
         } else {
             assertTrue(hostObj instanceof String);
-            host = (String)hostObj;
+            host = (String) hostObj;
         }
         assertNotNull(host);
 
@@ -194,7 +193,7 @@ public abstract class AuthFormClientTestSupport extends AuthFormTestSupport {
         }
         int port = -1;
         if (portObj instanceof Number) {
-            port = ((Number)portObj).intValue();
+            port = ((Number) portObj).intValue();
         }
         assertTrue(port > 0);
 
@@ -214,7 +213,10 @@ public abstract class AuthFormClientTestSupport extends AuthFormTestSupport {
     protected void doFormsLogin() throws MalformedCookieException, IOException {
         doFormsLogin(null, null);
     }
-    protected void doFormsLogin(ValidateFormauthCookie formauthCookieValidator, ValidateFormauthDomainCookie domainCookieValidator) throws MalformedCookieException, IOException {
+
+    protected void doFormsLogin(
+            ValidateFormauthCookie formauthCookieValidator, ValidateFormauthDomainCookie domainCookieValidator)
+            throws MalformedCookieException, IOException {
         // before login, there should be no formauth cookie in the cookie store
         Cookie formauthCookie = getFormAuthCookieFromCookieStore();
         assertNull("Did not expect formauth cookie in the cookie store", formauthCookie);
@@ -222,7 +224,8 @@ public abstract class AuthFormClientTestSupport extends AuthFormTestSupport {
         // verify that the script shows us as not logged in
         HttpGet whoamiRequest = new HttpGet(whoamiUri());
         try (CloseableHttpResponse whoamiResponse = httpClient.execute(whoamiRequest, httpContext)) {
-            assertEquals(HttpServletResponse.SC_OK, whoamiResponse.getStatusLine().getStatusCode());
+            assertEquals(
+                    HttpServletResponse.SC_OK, whoamiResponse.getStatusLine().getStatusCode());
             String content = EntityUtils.toString(whoamiResponse.getEntity());
             assertTrue(content.contains("whoAmI"));
             assertTrue(content.contains("anonymous"));
@@ -236,15 +239,17 @@ public abstract class AuthFormClientTestSupport extends AuthFormTestSupport {
         parameters.add(new BasicNameValuePair("resource", "/content.SLING10290IT.html"));
         HttpPost request = new HttpPost(String.format("%s/j_security_check", baseServerUri));
         request.setEntity(new UrlEncodedFormEntity(parameters));
-        Header locationHeader = null; 
+        Header locationHeader = null;
         try (CloseableHttpResponse response = httpClient.execute(request, httpContext)) {
-            assertEquals(HttpServletResponse.SC_MOVED_TEMPORARILY, response.getStatusLine().getStatusCode());
+            assertEquals(
+                    HttpServletResponse.SC_MOVED_TEMPORARILY,
+                    response.getStatusLine().getStatusCode());
             locationHeader = response.getFirstHeader("Location");
 
             // verify that the expected set-cookie header arrived
             Cookie parsedFormauthCookie = parseFormAuthCookieFromHeaders(response);
             assertNotNull("Expected a formauth cookie in the response", parsedFormauthCookie);
-            
+
             if (formauthCookieValidator != null) {
                 formauthCookieValidator.validate(parsedFormauthCookie);
             }
@@ -263,7 +268,8 @@ public abstract class AuthFormClientTestSupport extends AuthFormTestSupport {
         // verify that the script shows us logged in as the test user
         HttpGet followedRequest = new HttpGet(locationHeader.getValue());
         try (CloseableHttpResponse followedResponse = httpClient.execute(followedRequest, httpContext)) {
-            assertEquals(HttpServletResponse.SC_OK, followedResponse.getStatusLine().getStatusCode());
+            assertEquals(
+                    HttpServletResponse.SC_OK, followedResponse.getStatusLine().getStatusCode());
             String content = EntityUtils.toString(followedResponse.getEntity());
             assertTrue(content.contains("whoAmI"));
             assertTrue(content.contains(FORM_AUTH_VERIFY_USER));
@@ -276,12 +282,13 @@ public abstract class AuthFormClientTestSupport extends AuthFormTestSupport {
 
     /**
      * Retrieve the formauth cookie from the cookie store
-     * 
+     *
      * @return the formauth cookie or null if not found
      */
     protected Cookie getFormAuthCookieFromCookieStore() {
         return getCookieFromCookieStore(COOKIE_SLING_FORMAUTH);
     }
+
     protected Cookie getCookieFromCookieStore(String cookieName) {
         Cookie formauthCookie = null;
         List<Cookie> cookies = httpContext.getCookieStore().getCookies();
@@ -304,14 +311,18 @@ public abstract class AuthFormClientTestSupport extends AuthFormTestSupport {
     protected Cookie parseFormAuthCookieFromHeaders(HttpResponse response) throws MalformedCookieException {
         return parseCookieFromHeaders(response, COOKIE_SLING_FORMAUTH);
     }
+
     protected Cookie parseCookieFromHeaders(HttpResponse response, String cookieName) throws MalformedCookieException {
-        Header [] cookieHeaders = response.getHeaders(HEADER_SET_COOKIE);
+        Header[] cookieHeaders = response.getHeaders(HEADER_SET_COOKIE);
         assertNotNull(cookieHeaders);
 
         Cookie parsedFormauthCookie = null;
         CookieSpec cookieSpec = new RFC6265StrictSpec();
-        CookieOrigin origin = new CookieOrigin(baseServerUri.getHost(), baseServerUri.getPort(),
-                baseServerUri.getPath(), "https".equals(baseServerUri.getScheme()));
+        CookieOrigin origin = new CookieOrigin(
+                baseServerUri.getHost(),
+                baseServerUri.getPort(),
+                baseServerUri.getPath(),
+                "https".equals(baseServerUri.getScheme()));
         for (Header cookieHeader : cookieHeaders) {
             List<Cookie> parsedCookies = cookieSpec.parse(cookieHeader, origin);
             for (Cookie c : parsedCookies) {
@@ -333,5 +344,4 @@ public abstract class AuthFormClientTestSupport extends AuthFormTestSupport {
     protected static interface ValidateFormauthDomainCookie {
         void validate(Cookie cookie);
     }
-
 }

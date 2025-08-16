@@ -1,36 +1,24 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 package org.apache.sling.auth.form.it;
 
-import static org.apache.felix.hc.api.FormattingResultLog.msHumanReadable;
-import static org.apache.sling.testing.paxexam.SlingOptions.awaitility;
-import static org.apache.sling.testing.paxexam.SlingOptions.slingQuickstartOakTar;
-import static org.apache.sling.testing.paxexam.SlingOptions.versionResolver;
-import static org.awaitility.Awaitility.await;
-import static org.junit.Assert.assertNotNull;
-import static org.ops4j.pax.exam.CoreOptions.composite;
-import static org.ops4j.pax.exam.CoreOptions.junitBundles;
-import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
-import static org.ops4j.pax.exam.CoreOptions.options;
-import static org.ops4j.pax.exam.CoreOptions.streamBundle;
-import static org.ops4j.pax.exam.CoreOptions.vmOption;
-import static org.ops4j.pax.exam.CoreOptions.when;
-import static org.ops4j.pax.exam.cm.ConfigurationAdminOptions.factoryConfiguration;
-import static org.ops4j.pax.tinybundles.core.TinyBundles.withBnd;
+import javax.inject.Inject;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -40,8 +28,6 @@ import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import javax.inject.Inject;
 
 import org.apache.felix.hc.api.Result;
 import org.apache.felix.hc.api.ResultLog;
@@ -59,6 +45,22 @@ import org.osgi.framework.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.apache.felix.hc.api.FormattingResultLog.msHumanReadable;
+import static org.apache.sling.testing.paxexam.SlingOptions.awaitility;
+import static org.apache.sling.testing.paxexam.SlingOptions.slingQuickstartOakTar;
+import static org.apache.sling.testing.paxexam.SlingOptions.versionResolver;
+import static org.awaitility.Awaitility.await;
+import static org.junit.Assert.assertNotNull;
+import static org.ops4j.pax.exam.CoreOptions.composite;
+import static org.ops4j.pax.exam.CoreOptions.junitBundles;
+import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
+import static org.ops4j.pax.exam.CoreOptions.options;
+import static org.ops4j.pax.exam.CoreOptions.streamBundle;
+import static org.ops4j.pax.exam.CoreOptions.vmOption;
+import static org.ops4j.pax.exam.CoreOptions.when;
+import static org.ops4j.pax.exam.cm.ConfigurationAdminOptions.factoryConfiguration;
+import static org.ops4j.pax.tinybundles.core.TinyBundles.withBnd;
+
 public abstract class AuthFormTestSupport extends TestSupport {
     private static final String BUNDLE_SYMBOLICNAME = "TEST-CONTENT-BUNDLE";
     private static final String SLING_BUNDLE_RESOURCES_HEADER = "Sling-Bundle-Resources";
@@ -70,7 +72,6 @@ public abstract class AuthFormTestSupport extends TestSupport {
 
     @Inject
     private HealthCheckExecutor hcExecutor;
-
 
     @Configuration
     public Option[] configuration() throws IOException {
@@ -95,46 +96,47 @@ public abstract class AuthFormTestSupport extends TestSupport {
         versionResolver.setVersion("org.ow2.asm", "asm-util", "9.5");
         versionResolver.setVersion("org.ow2.asm", "asm-tree", "9.5");
 
-        return options(
-            composite(
-                super.baseConfiguration(),
-                when(vmOption != null).useOptions(vmOption),
-                when(jacocoCommand != null).useOptions(jacocoCommand),
-                optionalRemoteDebug(),
-                slingQuickstart(),
-                testBundle("bundle.filename"),
-                // testing - ensure that the /content path is accessible to everyone
-                //   NOTE: required since update to o.a.sling.testing.paxexam 4.x as the 3.x version already did this step
-                factoryConfiguration("org.apache.sling.jcr.repoinit.RepositoryInitializer")
-                    .put("scripts", new String[]{"create path (sling:OrderedFolder) /content\nset ACL for everyone\n      allow   jcr:read    on /content\n  end"})
-                    .asOption(),
-                // testing - add a user to use to login and verify the content loading has happened
-                factoryConfiguration("org.apache.sling.jcr.repoinit.RepositoryInitializer")
-                    .put("scripts", new String[] {
-                            "create user " + FORM_AUTH_VERIFY_USER + " with password " + FORM_AUTH_VERIFY_PWD +"\n"
-                            })
-                    .asOption(),
-                junitBundles(),
-                awaitility()
-            ).add(
-                additionalOptions()
-            ).remove(
-                // remove our bundle under test to avoid duplication
-                mavenBundle().groupId("org.apache.sling").artifactId("org.apache.sling.auth.form").version(versionResolver)
-            )
-        );
+        return options(composite(
+                        super.baseConfiguration(),
+                        when(vmOption != null).useOptions(vmOption),
+                        when(jacocoCommand != null).useOptions(jacocoCommand),
+                        optionalRemoteDebug(),
+                        slingQuickstart(),
+                        testBundle("bundle.filename"),
+                        // testing - ensure that the /content path is accessible to everyone
+                        //   NOTE: required since update to o.a.sling.testing.paxexam 4.x as the 3.x version already did
+                        // this step
+                        factoryConfiguration("org.apache.sling.jcr.repoinit.RepositoryInitializer")
+                                .put("scripts", new String[] {
+                                    "create path (sling:OrderedFolder) /content\nset ACL for everyone\n      allow   jcr:read    on /content\n  end"
+                                })
+                                .asOption(),
+                        // testing - add a user to use to login and verify the content loading has happened
+                        factoryConfiguration("org.apache.sling.jcr.repoinit.RepositoryInitializer")
+                                .put("scripts", new String[] {
+                                    "create user " + FORM_AUTH_VERIFY_USER + " with password " + FORM_AUTH_VERIFY_PWD
+                                            + "\n"
+                                })
+                                .asOption(),
+                        junitBundles(),
+                        awaitility())
+                .add(additionalOptions())
+                .remove(
+                        // remove our bundle under test to avoid duplication
+                        mavenBundle()
+                                .groupId("org.apache.sling")
+                                .artifactId("org.apache.sling.auth.form")
+                                .version(versionResolver)));
     }
 
     protected Option[] additionalOptions() throws IOException { // NOSONAR
-        return new Option[]{};
+        return new Option[] {};
     }
 
     protected Option slingQuickstart() {
         final String workingDirectory = workingDirectory();
         final int httpPort = findFreePort();
-        return composite(
-            slingQuickstartOakTar(workingDirectory, httpPort)
-        );
+        return composite(slingQuickstartOakTar(workingDirectory, httpPort));
     }
 
     public String getTestFileUrl(String path) {
@@ -156,7 +158,7 @@ public abstract class AuthFormTestSupport extends TestSupport {
 
     /**
      * Wait for the health check to be ok
-     * 
+     *
      * @param timeoutMsec the max time to wait for the health check to be ok
      * @param nextIterationDelay the sleep time between the check attempts
      */
@@ -164,7 +166,7 @@ public abstract class AuthFormTestSupport extends TestSupport {
         // retry until the exec call returns true and doesn't throw any exception
         await().atMost(timeoutMsec, TimeUnit.MILLISECONDS)
                 .pollInterval(nextIterationDelay, TimeUnit.MILLISECONDS)
-                .until(this::doHealthCheck); 
+                .until(this::doHealthCheck);
     }
 
     /**
@@ -211,16 +213,21 @@ public abstract class AuthFormTestSupport extends TestSupport {
      * Produce a human readable report of the health check results that is suitable for
      * debugging or writing to a log
      */
-    protected String toHealthCheckResultInfo(final HealthCheckExecutionResult exResult, final boolean debug)  throws IOException {
+    protected String toHealthCheckResultInfo(final HealthCheckExecutionResult exResult, final boolean debug)
+            throws IOException {
         String value = null;
-        try (StringWriter resultWriter = new StringWriter(); BufferedWriter writer = new BufferedWriter(resultWriter)) {
+        try (StringWriter resultWriter = new StringWriter();
+                BufferedWriter writer = new BufferedWriter(resultWriter)) {
             final Result result = exResult.getHealthCheckResult();
 
-            writer.append('"').append(exResult.getHealthCheckMetadata().getTitle()).append('"');
+            writer.append('"')
+                    .append(exResult.getHealthCheckMetadata().getTitle())
+                    .append('"');
             writer.append(" result is: ").append(result.getStatus().toString());
             writer.newLine();
-            writer.append("   Finished: ").append(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(exResult.getFinishedAt()) + " after "
-                    + msHumanReadable(exResult.getElapsedTimeInMs()));
+            writer.append("   Finished: ")
+                    .append(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(exResult.getFinishedAt()) + " after "
+                            + msHumanReadable(exResult.getElapsedTimeInMs()));
 
             for (final ResultLog.Entry e : result) {
                 if (!debug && e.isDebug()) {
@@ -257,23 +264,23 @@ public abstract class AuthFormTestSupport extends TestSupport {
 
     /**
      * Build a test bundle containing the specified bundle resources
-     * 
+     *
      * @param header the value for the {@link #SLING_BUNDLE_RESOURCES_HEADER} header
      * @param content the collection of files to embed in the tinybundle
      * @return the tinybundle Option
      */
-    protected Option buildBundleResourcesBundle(final String header, final Collection<String> content) throws IOException {
+    protected Option buildBundleResourcesBundle(final String header, final Collection<String> content)
+            throws IOException {
         final TinyBundle bundle = TinyBundles.bundle();
         bundle.set(Constants.BUNDLE_SYMBOLICNAME, BUNDLE_SYMBOLICNAME);
         bundle.set(SLING_BUNDLE_RESOURCES_HEADER, header);
-        bundle.set("Require-Capability", "osgi.extender;filter:=\"(&(osgi.extender=org.apache.sling.bundleresource)(version<=1.1.0)(!(version>=2.0.0)))\"");
+        bundle.set(
+                "Require-Capability",
+                "osgi.extender;filter:=\"(&(osgi.extender=org.apache.sling.bundleresource)(version<=1.1.0)(!(version>=2.0.0)))\"");
 
         for (final String entry : content) {
             addContent(bundle, entry);
         }
-        return streamBundle(
-            bundle.build(withBnd())
-        ).start();
+        return streamBundle(bundle.build(withBnd())).start();
     }
-
 }

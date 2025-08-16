@@ -18,19 +18,11 @@
  */
 package org.apache.sling.auth.form.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import java.io.File;
 import java.util.Collections;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.sling.api.auth.Authenticator;
 import org.apache.sling.auth.core.spi.AuthenticationInfo;
@@ -41,6 +33,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class FormAuthenticationHandlerTest {
 
@@ -54,31 +54,31 @@ public class FormAuthenticationHandlerTest {
         mockBundle.setHeaders(Collections.singletonMap(Constants.BUNDLE_VENDOR, "Testing"));
     }
 
-    @Test public void testGetTokenFile() {
-      final File root = new File("bundle999").getAbsoluteFile();
-      final String slingHome = new File("sling").getAbsolutePath();
-      final BundleContext bundleContext = spy(context.bundleContext());
+    @Test
+    public void testGetTokenFile() {
+        final File root = new File("bundle999").getAbsoluteFile();
+        final String slingHome = new File("sling").getAbsolutePath();
+        final BundleContext bundleContext = spy(context.bundleContext());
 
-      // mock access to sling.home framework property
-      when(bundleContext.getProperty("sling.home"))
-          .thenReturn(slingHome);
-      // mock data file support
-      when(bundleContext.getDataFile(anyString()))
-          .thenAnswer(invocation -> {
-              String data = (String) invocation.getArgument(0);
-              // mock no data file support with file names starting with sl
-              if (data.startsWith("sl")) {
-                  return null;
-              }
+        // mock access to sling.home framework property
+        when(bundleContext.getProperty("sling.home")).thenReturn(slingHome);
+        // mock data file support
+        when(bundleContext.getDataFile(anyString())).thenAnswer(invocation -> {
+            String data = (String) invocation.getArgument(0);
+            // mock no data file support with file names starting with sl
+            if (data.startsWith("sl")) {
+                return null;
+            }
 
-              // mock data file support for any other name
-              if (data.startsWith("/")) {
-                  data = data.substring(1);
-              }
-              return new File(root, data);
-          });
+            // mock data file support for any other name
+            if (data.startsWith("/")) {
+                data = data.substring(1);
+            }
+            return new File(root, data);
+        });
 
-        final FormAuthenticationHandler handler = context.registerInjectActivateService(FormAuthenticationHandler.class);
+        final FormAuthenticationHandler handler =
+                context.registerInjectActivateService(FormAuthenticationHandler.class);
 
         // test files relative to bundle context
         File relFile0 = handler.getTokenFile("", bundleContext);
@@ -95,8 +95,7 @@ public class FormAuthenticationHandlerTest {
 
         // test file relative to current working directory
         String relName3 = "sl/test";
-        when(bundleContext.getProperty("sling.home"))
-            .thenReturn(null);
+        when(bundleContext.getProperty("sling.home")).thenReturn(null);
         File relFile3 = handler.getTokenFile(relName3, bundleContext);
         assertEquals(new File(relName3).getAbsoluteFile(), relFile3);
 
@@ -106,8 +105,10 @@ public class FormAuthenticationHandlerTest {
         assertEquals(absFile, absFile0);
     }
 
-    @Test public void testGetUserid() {
-        final FormAuthenticationHandler handler = context.registerInjectActivateService(FormAuthenticationHandler.class);
+    @Test
+    public void testGetUserid() {
+        final FormAuthenticationHandler handler =
+                context.registerInjectActivateService(FormAuthenticationHandler.class);
         assertEquals(null, handler.getUserId(null));
         assertEquals(null, handler.getUserId(""));
         assertEquals(null, handler.getUserId("field0"));
@@ -121,18 +122,19 @@ public class FormAuthenticationHandlerTest {
      * @throws Exception UrlEncoder.encode throws UnsupportedEncodingException
      * @since 1.0.6
      */
-    @Test public void testRedirectionAfterLogin() throws Exception {
+    @Test
+    public void testRedirectionAfterLogin() throws Exception {
         // Create mocks
-        final HttpServletRequest request =  mock(HttpServletRequest.class);
+        final HttpServletRequest request = mock(HttpServletRequest.class);
         final HttpServletResponse response = mock(HttpServletResponse.class);
         final AuthenticationInfo authenticationInfo = mock(AuthenticationInfo.class);
 
-        final FormAuthenticationHandler authenticationHandler = context.registerInjectActivateService(FormAuthenticationHandler.class);
+        final FormAuthenticationHandler authenticationHandler =
+                context.registerInjectActivateService(FormAuthenticationHandler.class);
 
         // Mocks the Authenticator.LOGIN_RESOURCE attribute
         final String url = "http://www.blah.com";
-        when(request.getAttribute(Authenticator.LOGIN_RESOURCE))
-            .thenReturn(url);
+        when(request.getAttribute(Authenticator.LOGIN_RESOURCE)).thenReturn(url);
 
         // Mocks the HttpServletRequest and HttpServletResponse object
         when(request.getMethod()).thenReturn("POST");
@@ -150,5 +152,4 @@ public class FormAuthenticationHandlerTest {
         // passing the parameter directly
         verify(response).sendRedirect(contextPath);
     }
-
 }

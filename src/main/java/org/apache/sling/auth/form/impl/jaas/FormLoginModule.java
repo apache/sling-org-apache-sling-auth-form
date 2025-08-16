@@ -67,8 +67,7 @@ final class FormLoginModule extends AbstractLoginModule {
     public boolean login() throws LoginException {
         boolean succeeded = false;
         Credentials credentials = getCredentials();
-        if (credentials instanceof FormCredentials) {
-            FormCredentials cred = (FormCredentials) credentials;
+        if (credentials instanceof FormCredentials cred) {
             userId = cred.getUserId();
 
             if (!authHandler.isValid(cred)) {

@@ -275,14 +275,14 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
                 final Object jReasonCode = request.getAttribute(FAILURE_REASON_CODE);
                 @SuppressWarnings("rawtypes")
                 final String reasonCode =
-                        (jReasonCode instanceof Enum) ? ((Enum) jReasonCode).name() : jReasonCode.toString();
+                        (jReasonCode instanceof Enum jReasonCodeEnum) ? jReasonCodeEnum.name() : jReasonCode.toString();
                 params.put(FAILURE_REASON_CODE, reasonCode);
             }
         } else {
             if (request.getAttribute(FAILURE_REASON) != null) {
                 final Object jReason = request.getAttribute(FAILURE_REASON);
                 @SuppressWarnings("rawtypes")
-                final String reason = (jReason instanceof Enum) ? ((Enum) jReason).name() : jReason.toString();
+                final String reason = (jReason instanceof Enum jReasonEnum) ? jReasonEnum.name() : jReason.toString();
                 params.put(FAILURE_REASON, reason);
             }
         }
@@ -495,7 +495,7 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
     private AuthenticationInfo createAuthInfo(final String authData) {
         final String userId = getUserId(authData);
         if (userId == null) {
-            return null;
+            return null; // NOSONAR
         }
 
         final AuthenticationInfo info = new AuthenticationInfo(HttpServletRequest.FORM_AUTH, userId);
@@ -513,13 +513,13 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
         String authData = null;
         if (jaasHelper.enabled()) {
             Object credentials = info.get(JcrResourceConstants.AUTHENTICATION_INFO_CREDENTIALS);
-            if (credentials instanceof Credentials) {
-                authData = getCookieAuthData((Credentials) credentials);
+            if (credentials instanceof Credentials creds) {
+                authData = getCookieAuthData(creds);
             }
         } else {
             Object data = info.get(attrCookieAuthData);
-            if (data instanceof String) {
-                authData = (String) data;
+            if (data instanceof String strData) {
+                authData = strData;
             }
         }
         return authData;
@@ -528,13 +528,13 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
     // ---------- LoginModulePlugin support
 
     private String getCookieAuthData(final Credentials credentials) {
-        if (credentials instanceof SimpleCredentials) {
-            Object data = ((SimpleCredentials) credentials).getAttribute(attrCookieAuthData);
-            if (data instanceof String) {
-                return (String) data;
+        if (credentials instanceof SimpleCredentials simpleCreds) {
+            Object data = simpleCreds.getAttribute(attrCookieAuthData);
+            if (data instanceof String strData) {
+                return strData;
             }
-        } else if (credentials instanceof FormCredentials) {
-            return ((FormCredentials) credentials).getAuthData();
+        } else if (credentials instanceof FormCredentials creds) {
+            return creds.getAuthData();
         }
 
         // no SimpleCredentials or no valid attribute
@@ -899,8 +899,8 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
             HttpSession session = request.getSession(false);
             if (session != null) {
                 Object attribute = session.getAttribute(sessionAttributeName);
-                if (attribute instanceof String) {
-                    return (String) attribute;
+                if (attribute instanceof String strAttribute) {
+                    return strAttribute;
                 }
             }
             return null;

@@ -1,21 +1,26 @@
 /*
- * Licensed to the Sakai Foundation (SF) under one
- * or more contributor license agreements. See the NOTICE file
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
- * regarding copyright ownership. The SF licenses this file
+ * regarding copyright ownership.  The ASF licenses this file
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at
+ * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 package org.apache.sling.auth.form.impl;
+
+import javax.crypto.Mac;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -32,9 +37,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.concurrent.atomic.AtomicReferenceArray;
-import javax.crypto.Mac;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -115,9 +117,8 @@ class TokenStore {
      * @throws NullPointerException if <code>tokenFile</code> is
      *             <code>null</code>.
      */
-    TokenStore(final File tokenFile, final long sessionTimeout,
-            final boolean fastSeed) throws NoSuchAlgorithmException,
-            InvalidKeyException, IllegalStateException {
+    TokenStore(final File tokenFile, final long sessionTimeout, final boolean fastSeed)
+            throws NoSuchAlgorithmException, InvalidKeyException, IllegalStateException {
 
         if (tokenFile == null) {
             throw new NullPointerException("tokenfile");
@@ -136,11 +137,11 @@ class TokenStore {
             random.setSeed(getFastEntropy());
         } else {
             log.info("Seeding the secure random number generator can take "
-                + "up to several minutes on some operating systems depending "
-                + "upon environment factors. If this is a problem for you, "
-                + "set the system property 'java.security.egd' to "
-                + "'file:/dev/./urandom' or enable the Fast Seed Generator "
-                + "in the Web Console");
+                    + "up to several minutes on some operating systems depending "
+                    + "upon environment factors. If this is a problem for you, "
+                    + "set the system property 'java.security.egd' to "
+                    + "'file:/dev/./urandom' or enable the Fast Seed Generator "
+                    + "in the Web Console");
         }
         byte[] b = new byte[20];
         random.nextBytes(b);
@@ -161,19 +162,16 @@ class TokenStore {
      * @throws InvalidKeyException
      */
     String encode(final long expires, final String userId)
-            throws IllegalStateException,
-            NoSuchAlgorithmException, InvalidKeyException {
+            throws IllegalStateException, NoSuchAlgorithmException, InvalidKeyException {
         int token = getActiveToken();
         SecretKey key = currentTokens.get(token);
         return encode(expires, userId, token, key);
     }
 
-    private String encode(final long expires, final String userId,
-            final int token, final SecretKey key) throws IllegalStateException,
-            NoSuchAlgorithmException, InvalidKeyException {
+    private String encode(final long expires, final String userId, final int token, final SecretKey key)
+            throws IllegalStateException, NoSuchAlgorithmException, InvalidKeyException {
 
-        String cookiePayload = String.valueOf(token) + String.valueOf(expires)
-            + "@" + userId;
+        String cookiePayload = String.valueOf(token) + String.valueOf(expires) + "@" + userId;
         Mac m = Mac.getInstance(HMAC_SHA256);
         m.init(key);
         m.update(cookiePayload.getBytes(StandardCharsets.UTF_8));
@@ -226,29 +224,31 @@ class TokenStore {
 
                     try {
                         SecretKey secretKey = currentTokens.get(tokenNumber);
-                        if ( secretKey == null ) {
+                        if (secretKey == null) {
                             log.error("AuthNCookie value '{}' points to an unknown token number", value);
                             return false;
                         }
-                        String hmac = encode(cookieTime, parts[2], tokenNumber,
-                            secretKey);
+                        String hmac = encode(cookieTime, parts[2], tokenNumber, secretKey);
                         return value.equals(hmac);
-                    } catch (ArrayIndexOutOfBoundsException | InvalidKeyException | IllegalStateException |
-                             NoSuchAlgorithmException e) {
+                    } catch (ArrayIndexOutOfBoundsException
+                            | InvalidKeyException
+                            | IllegalStateException
+                            | NoSuchAlgorithmException e) {
                         log.error(e.getMessage(), e);
                     }
 
                     log.error("AuthNCookie value '{}' is invalid", value);
 
                 } else {
-                    log.error("AuthNCookie value '{}' has expired {}ms ago",
-                        value, (System.currentTimeMillis() - cookieTime));
+                    log.error(
+                            "AuthNCookie value '{}' has expired {}ms ago",
+                            value,
+                            (System.currentTimeMillis() - cookieTime));
                 }
 
             } else {
                 log.error(
-                    "AuthNCookie value '{}' is invalid: refers to an invalid token number {}",
-                    value, tokenNumber);
+                        "AuthNCookie value '{}' is invalid: refers to an invalid token number {}", value, tokenNumber);
             }
 
         } else {
@@ -265,12 +265,10 @@ class TokenStore {
      * @return the current token.
      */
     private synchronized int getActiveToken() {
-        if (System.currentTimeMillis() > nextUpdate
-            || currentTokens.get(currentToken) == null) {
+        if (System.currentTimeMillis() > nextUpdate || currentTokens.get(currentToken) == null) {
             // cycle so that during a typical ttl the tokens get completely
             // refreshed.
-            nextUpdate = System.currentTimeMillis() + ttl
-                / (currentTokens.length() - 1);
+            nextUpdate = System.currentTimeMillis() + ttl / (currentTokens.length() - 1);
             byte[] b = new byte[20];
             random.nextBytes(b);
 
@@ -290,11 +288,11 @@ class TokenStore {
      * Stores the current set of tokens to the token file
      */
     private void saveTokens() {
-            File parent = tokenFile.getAbsoluteFile().getParentFile();
-            log.info("Token File {} parent {} ", tokenFile, parent);
-            if (!parent.exists()) {
-                parent.mkdirs();
-            }
+        File parent = tokenFile.getAbsoluteFile().getParentFile();
+        log.info("Token File {} parent {} ", tokenFile, parent);
+        if (!parent.exists()) {
+            parent.mkdirs();
+        }
         try (DataOutputStream keyOutputStream = new DataOutputStream(new FileOutputStream(tmpTokenFile))) {
             keyOutputStream.writeInt(currentToken);
             keyOutputStream.writeLong(nextUpdate);
@@ -355,8 +353,6 @@ class TokenStore {
             } catch (IOException e) {
 
                 log.error("Failed to load cookie keys {}", e.getMessage());
-
-
             }
         }
 

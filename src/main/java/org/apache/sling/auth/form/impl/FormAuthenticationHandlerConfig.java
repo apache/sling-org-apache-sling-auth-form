@@ -25,7 +25,7 @@ import org.osgi.service.metatype.annotations.Option;
 
 /**
  * The configuration for the <code>FormAuthenticationHandler</code>
- * 
+ *
  * @see org.apache.sling.auth.form.impl.FormAuthenticationHandler
  */
 @ObjectClassDefinition(name = "%auth.form.name", description = "%auth.form.description")
@@ -43,11 +43,19 @@ public @interface FormAuthenticationHandlerConfig {
     @AttributeDefinition(name = "%authName.name", description = "%authName.description")
     String form_auth_name() default DEFAULT_AUTH_CREDENTIALS_NAME; // NOSONAR
 
-    @AttributeDefinition(options = { @Option(label = "Cookie", value = DEFAULT_AUTH_FORM_STORAGE),
-            @Option(label = "Session Attribute", value = AUTH_STORAGE_SESSION_ATTRIBUTE) }, name = "%authStorage.name", description = "%authStorage.description")
+    @AttributeDefinition(
+            options = {
+                @Option(label = "Cookie", value = DEFAULT_AUTH_FORM_STORAGE),
+                @Option(label = "Session Attribute", value = AUTH_STORAGE_SESSION_ATTRIBUTE)
+            },
+            name = "%authStorage.name",
+            description = "%authStorage.description")
     String form_auth_storage() default DEFAULT_AUTH_FORM_STORAGE; // NOSONAR
 
-    @AttributeDefinition(type = AttributeType.INTEGER, name = "%authTimeout.name", description = "%authTimeout.description")
+    @AttributeDefinition(
+            type = AttributeType.INTEGER,
+            name = "%authTimeout.name",
+            description = "%authTimeout.description")
     int form_auth_timeout() default DEFAULT_AUTH_TIMEOUT; // NOSONAR
 
     @AttributeDefinition(name = "%credentialsName.name", description = "%credentialsName.description")
@@ -62,32 +70,53 @@ public @interface FormAuthenticationHandlerConfig {
     @AttributeDefinition(name = "%onexpireLogin.name", description = "%onexpireLogin.description")
     boolean form_onexpire_login() default false; // NOSONAR
 
-    @AttributeDefinition(type = AttributeType.BOOLEAN, name = "%tokenFileFastseed.name", description = "%tokenFileFastseed.description")
+    @AttributeDefinition(
+            type = AttributeType.BOOLEAN,
+            name = "%tokenFileFastseed.name",
+            description = "%tokenFileFastseed.description")
     boolean form_token_fastseed() default false; // NOSONAR
 
     @AttributeDefinition(name = "%tokenFile.name", description = "%tokenFile.description")
     String form_token_file() default DEFAULT_FORM_TOKEN_FILE; // NOSONAR
 
-    @AttributeDefinition(options = { @Option(label = "Optional", value = "optional"),
-            @Option(label = "Required", value = "required"), @Option(label = "Requisite", value = "requisite"),
-            @Option(label = "Sufficient", value = DEEFAULT_JAAS_CONTROL_FLAG) }, name = "%jaasControlFlag.name", description = "%jaasControlFlag.description")
+    @AttributeDefinition(
+            options = {
+                @Option(label = "Optional", value = "optional"),
+                @Option(label = "Required", value = "required"),
+                @Option(label = "Requisite", value = "requisite"),
+                @Option(label = "Sufficient", value = DEEFAULT_JAAS_CONTROL_FLAG)
+            },
+            name = "%jaasControlFlag.name",
+            description = "%jaasControlFlag.description")
     String jaas_controlFlag() default DEEFAULT_JAAS_CONTROL_FLAG; // NOSONAR
 
-    @AttributeDefinition(type = AttributeType.INTEGER, name = "%jaasRanking.name", description = "%jaasRanking.description")
+    @AttributeDefinition(
+            type = AttributeType.INTEGER,
+            name = "%jaasRanking.name",
+            description = "%jaasRanking.description")
     int jaas_ranking() default DEFAULT_JAAS_RANKING; // NOSONAR
 
     @AttributeDefinition(name = "%jaasRealm.name", description = "%jaasRealm.description")
     String jaas_realmName() default DEFAULT_JAAS_REALM_NAME; // NOSONAR
 
     @AttributeDefinition(cardinality = Integer.MAX_VALUE, name = "%path.name", description = "%path.description")
-    String[] path() default { "/" };
+    String[] path() default {"/"};
 
-    @AttributeDefinition(type = AttributeType.INTEGER, name = "%service.ranking.name", description = "%service.ranking.description")
+    @AttributeDefinition(
+            type = AttributeType.INTEGER,
+            name = "%service.ranking.name",
+            description = "%service.ranking.description")
     int service_ranking() default 0; // NOSONAR
 
-    @AttributeDefinition(type = AttributeType.BOOLEAN, name = "%useInclude.name", description = "%useInclude.description")
+    @AttributeDefinition(
+            type = AttributeType.BOOLEAN,
+            name = "%useInclude.name",
+            description = "%useInclude.description")
     boolean useInclude() default false;
 
-    @AttributeDefinition(type = AttributeType.BOOLEAN, name = "%preferReasonCode.name", description = "%preferReasonCode.description")
+    @AttributeDefinition(
+            type = AttributeType.BOOLEAN,
+            name = "%preferReasonCode.name",
+            description = "%preferReasonCode.description")
     boolean preferReasonCode() default false;
 }

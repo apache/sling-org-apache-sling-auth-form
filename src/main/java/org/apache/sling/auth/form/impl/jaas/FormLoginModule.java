@@ -16,15 +16,14 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.apache.sling.auth.form.impl.jaas;
-
-import java.util.Collections;
-import java.util.Set;
 
 import javax.jcr.Credentials;
 import javax.jcr.SimpleCredentials;
 import javax.security.auth.login.LoginException;
+
+import java.util.Collections;
+import java.util.Set;
 
 import org.apache.jackrabbit.oak.spi.security.authentication.AbstractLoginModule;
 import org.apache.jackrabbit.oak.spi.security.authentication.PreAuthenticatedLogin;
@@ -40,6 +39,7 @@ final class FormLoginModule extends AbstractLoginModule {
      */
     @SuppressWarnings("rawtypes")
     private static final Set<Class> SUPPORTED_CREDENTIALS = Collections.<Class>singleton(FormCredentials.class);
+
     private static final char[] EMPTY_PWD = new char[0];
 
     /**
@@ -71,7 +71,7 @@ final class FormLoginModule extends AbstractLoginModule {
             FormCredentials cred = (FormCredentials) credentials;
             userId = cred.getUserId();
 
-            if (!authHandler.isValid(cred)){
+            if (!authHandler.isValid(cred)) {
                 log.debug("Invalid credentials");
 
             } else if (userId == null) {

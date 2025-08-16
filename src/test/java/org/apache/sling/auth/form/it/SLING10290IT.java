@@ -18,17 +18,11 @@
  */
 package org.apache.sling.auth.form.it;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.ops4j.pax.exam.cm.ConfigurationAdminOptions.newConfiguration;
+import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Date;
-
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -42,6 +36,12 @@ import org.ops4j.pax.exam.junit.PaxExam;
 import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
 import org.ops4j.pax.exam.spi.reactors.PerClass;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.ops4j.pax.exam.cm.ConfigurationAdminOptions.newConfiguration;
+
 /**
  * integration tests to verify fix for SLING-10290
  */
@@ -54,15 +54,16 @@ public class SLING10290IT extends AuthFormClientTestSupport {
         // change the formauth timeout to 1 minute so we don't have to wait a long
         //   time for the testRefreshCookieOnRequestAfterHalfExpirationDuration test
         return newConfiguration("org.apache.sling.auth.form.FormAuthenticationHandler")
-            .put("form.auth.timeout", "1")
-        .asOption();
+                .put("form.auth.timeout", "1")
+                .asOption();
     }
 
     @Test
     public void testLoginFormRenders() throws IOException {
         HttpGet loginformRequest = new HttpGet(String.format("%s/system/sling/form/login", baseServerUri));
         try (CloseableHttpResponse loginformResponse = httpClient.execute(loginformRequest, httpContext)) {
-            assertEquals(HttpServletResponse.SC_OK, loginformResponse.getStatusLine().getStatusCode());
+            assertEquals(
+                    HttpServletResponse.SC_OK, loginformResponse.getStatusLine().getStatusCode());
             String content = EntityUtils.toString(loginformResponse.getEntity());
             assertTrue(content.contains("Login to Apache Sling"));
             assertTrue(content.contains("loginform"));
@@ -74,7 +75,9 @@ public class SLING10290IT extends AuthFormClientTestSupport {
         doFormsLogin();
         HttpGet logoutRequest = new HttpGet(String.format("%s/system/sling/logout", baseServerUri));
         try (CloseableHttpResponse logoutResponse = httpClient.execute(logoutRequest, httpContext)) {
-            assertEquals(HttpServletResponse.SC_MOVED_TEMPORARILY, logoutResponse.getStatusLine().getStatusCode());
+            assertEquals(
+                    HttpServletResponse.SC_MOVED_TEMPORARILY,
+                    logoutResponse.getStatusLine().getStatusCode());
             Cookie parsedFormauthCookie = parseFormAuthCookieFromHeaders(logoutResponse);
             assertNotNull("Expected a formauth cookie in the response", parsedFormauthCookie);
             assertEquals("Expected the formauth cookie value to be empty", "", parsedFormauthCookie.getValue());
@@ -89,8 +92,9 @@ public class SLING10290IT extends AuthFormClientTestSupport {
      */
     @Test
     public void testSetCookieOnFirstRequestAfterLogin() throws MalformedCookieException, IOException {
-        doFormsLogin(cookie -> assertNotNull("Expected a formauth cookie", cookie),
-                     domainCookie -> assertNull("Did not expect a formauth domain cookie", domainCookie));
+        doFormsLogin(
+                cookie -> assertNotNull("Expected a formauth cookie", cookie),
+                domainCookie -> assertNull("Did not expect a formauth domain cookie", domainCookie));
     }
 
     /**
@@ -115,7 +119,8 @@ public class SLING10290IT extends AuthFormClientTestSupport {
      * has occurred
      */
     @Test
-    public void testRefreshCookieOnRequestAfterHalfExpirationDuration() throws InterruptedException, MalformedCookieException, IOException {
+    public void testRefreshCookieOnRequestAfterHalfExpirationDuration()
+            throws InterruptedException, MalformedCookieException, IOException {
         // 1. login as the test user
         doFormsLogin();
 
@@ -138,5 +143,4 @@ public class SLING10290IT extends AuthFormClientTestSupport {
             assertNull("Did not expect a formauth cookie in the response", parsedFormauthCookie2);
         }
     }
-
 }

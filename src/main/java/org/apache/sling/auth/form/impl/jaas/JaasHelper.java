@@ -16,13 +16,12 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.apache.sling.auth.form.impl.jaas;
+
+import javax.security.auth.spi.LoginModule;
 
 import java.util.Dictionary;
 import java.util.Hashtable;
-
-import javax.security.auth.spi.LoginModule;
 
 import org.apache.felix.jaas.LoginModuleFactory;
 import org.apache.sling.auth.form.impl.FormAuthenticationHandler;
@@ -50,7 +49,8 @@ public class JaasHelper {
      * @param ctx        the bundle context
      * @param config properties that contain the jaas related LMF service properties.
      */
-    public JaasHelper(FormAuthenticationHandler authHandler, BundleContext ctx, FormAuthenticationHandlerConfig config) {
+    public JaasHelper(
+            FormAuthenticationHandler authHandler, BundleContext ctx, FormAuthenticationHandlerConfig config) {
         this.authHandler = authHandler;
         // we dynamically register the LoginModuleFactory for the case we detect a login module.
         if (hasSSOLoginModule(ctx)) {
@@ -69,7 +69,6 @@ public class JaasHelper {
         return factoryRegistration != null;
     }
 
-
     /**
      * Closes this helper and unregisters the login module factory if needed.
      */
@@ -79,7 +78,8 @@ public class JaasHelper {
         }
     }
 
-    private ServiceRegistration<?> registerLoginModuleFactory(BundleContext ctx, FormAuthenticationHandlerConfig config) {
+    private ServiceRegistration<?> registerLoginModuleFactory(
+            BundleContext ctx, FormAuthenticationHandlerConfig config) {
         ServiceRegistration<?> reg = null;
         try {
             Dictionary<String, Object> props = new Hashtable<>(); // NOSONARs
@@ -90,7 +90,8 @@ public class JaasHelper {
             props.put(LoginModuleFactory.JAAS_RANKING, config.jaas_ranking());
             props.put(LoginModuleFactory.JAAS_CONTROL_FLAG, config.jaas_controlFlag());
             props.put(LoginModuleFactory.JAAS_REALM_NAME, config.jaas_realmName());
-            reg = ctx.registerService(LoginModuleFactory.class.getName(),
+            reg = ctx.registerService(
+                    LoginModuleFactory.class.getName(),
                     new LoginModuleFactory() {
                         public LoginModule createLoginModule() {
                             return new FormLoginModule(authHandler);
@@ -98,11 +99,10 @@ public class JaasHelper {
 
                         @Override
                         public String toString() {
-                            return desc + " (" +FormLoginModule.class.getName()+")";
+                            return desc + " (" + FormLoginModule.class.getName() + ")";
                         }
                     },
-                    props
-            );
+                    props);
             log.info("Registered FormLoginModuleFactory");
         } catch (Throwable e) { // NOSONAR
             log.error("unable to create an register the SSO login module factory", e);

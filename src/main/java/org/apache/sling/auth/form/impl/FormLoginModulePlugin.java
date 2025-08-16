@@ -18,14 +18,15 @@
  */
 package org.apache.sling.auth.form.impl;
 
+import javax.jcr.Credentials;
+import javax.jcr.Session;
+import javax.security.auth.callback.CallbackHandler;
+
 import java.security.Principal;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Set;
 
-import javax.jcr.Credentials;
-import javax.jcr.Session;
-import javax.security.auth.callback.CallbackHandler;
 import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
 import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
 import org.osgi.framework.BundleContext;
@@ -67,18 +68,15 @@ final class FormLoginModulePlugin implements LoginModulePlugin {
      *         on shutdown.
      */
     static ServiceRegistration<LoginModulePlugin> register(
-            final FormAuthenticationHandler authHandler,
-            final BundleContext bundleContext) {
+            final FormAuthenticationHandler authHandler, final BundleContext bundleContext) {
         FormLoginModulePlugin plugin = new FormLoginModulePlugin(authHandler);
 
         Hashtable<String, Object> properties = new Hashtable<>(); // NOSONAR
-        properties.put(Constants.SERVICE_DESCRIPTION,
-            "LoginModulePlugin Support for FormAuthenticationHandler");
-        properties.put(Constants.SERVICE_VENDOR,
-            bundleContext.getBundle().getHeaders().get(Constants.BUNDLE_VENDOR));
+        properties.put(Constants.SERVICE_DESCRIPTION, "LoginModulePlugin Support for FormAuthenticationHandler");
+        properties.put(
+                Constants.SERVICE_VENDOR, bundleContext.getBundle().getHeaders().get(Constants.BUNDLE_VENDOR));
 
-        return bundleContext.registerService(LoginModulePlugin.class,
-            plugin, properties);
+        return bundleContext.registerService(LoginModulePlugin.class, plugin, properties);
     }
 
     /**
@@ -107,8 +105,7 @@ final class FormLoginModulePlugin implements LoginModulePlugin {
     /**
      * This implementation does nothing.
      */
-    public void doInit(CallbackHandler callbackHandler, Session session,
-            @SuppressWarnings("rawtypes") Map options) {
+    public void doInit(CallbackHandler callbackHandler, Session session, @SuppressWarnings("rawtypes") Map options) {
         // no-op
     }
 
@@ -123,7 +120,7 @@ final class FormLoginModulePlugin implements LoginModulePlugin {
     /**
      * This implementation does nothing.
      */
-    public void addPrincipals(@SuppressWarnings({ "unused", "rawtypes" }) Set principals) {
+    public void addPrincipals(@SuppressWarnings({"unused", "rawtypes"}) Set principals) {
         throw new UnsupportedOperationException();
     }
 
@@ -134,8 +131,7 @@ final class FormLoginModulePlugin implements LoginModulePlugin {
      *
      * @see CookieAuthenticationHandler#isValid(Credentials)
      */
-    public AuthenticationPlugin getAuthentication(Principal principal,
-            Credentials creds) {
+    public AuthenticationPlugin getAuthentication(Principal principal, Credentials creds) {
         return authHandler::isValid;
     }
 

@@ -18,17 +18,10 @@
  */
 package org.apache.sling.auth.form.it;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.ops4j.pax.exam.cm.ConfigurationAdminOptions.newConfiguration;
+import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.util.Date;
-
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -43,6 +36,13 @@ import org.ops4j.pax.exam.junit.PaxExam;
 import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
 import org.ops4j.pax.exam.spi.reactors.PerClass;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.ops4j.pax.exam.cm.ConfigurationAdminOptions.newConfiguration;
+
 /**
  * SLING-10421 validate proper cookie handling when the formauth
  * handler has been configured with an invalid cookie domain
@@ -55,8 +55,8 @@ public class SLING10421InvalidDomainIT extends AuthFormClientTestSupport {
     protected Option newFormauthHandlerConfiguration() {
         // change the default cookie domain config
         return newConfiguration("org.apache.sling.auth.form.FormAuthenticationHandler")
-            .put("form.default.cookie.domain", "invalid")
-        .asOption();
+                .put("form.default.cookie.domain", "invalid")
+                .asOption();
     }
 
     /**
@@ -76,12 +76,17 @@ public class SLING10421InvalidDomainIT extends AuthFormClientTestSupport {
 
         HttpGet logoutRequest = new HttpGet(String.format("%s/system/sling/logout", baseServerUri));
         try (CloseableHttpResponse logoutResponse = httpClient.execute(logoutRequest, httpContext)) {
-            assertEquals(HttpServletResponse.SC_MOVED_TEMPORARILY, logoutResponse.getStatusLine().getStatusCode());
+            assertEquals(
+                    HttpServletResponse.SC_MOVED_TEMPORARILY,
+                    logoutResponse.getStatusLine().getStatusCode());
             Cookie parsedFormauthCookie = parseFormAuthCookieFromHeaders(logoutResponse);
             assertNotNull("Expected a formauth cookie in the response", parsedFormauthCookie);
             assertEquals("Expected the formauth cookie value to be empty", "", parsedFormauthCookie.getValue());
             assertTrue("Expected the formauth cookie to be expired", parsedFormauthCookie.isExpired(new Date()));
-            assertEquals("Expected the formauth cookie domain to be localhost", "localhost", parsedFormauthCookie.getDomain());
+            assertEquals(
+                    "Expected the formauth cookie domain to be localhost",
+                    "localhost",
+                    parsedFormauthCookie.getDomain());
 
             Cookie parsedFormauthDomainCookie = parseCookieFromHeaders(logoutResponse, COOKIE_SLING_FORMAUTH_DOMAIN);
             assertNull("Did not expected a formauth domain cookie in the response", parsedFormauthDomainCookie);
@@ -110,12 +115,17 @@ public class SLING10421InvalidDomainIT extends AuthFormClientTestSupport {
 
         HttpGet logoutRequest = new HttpGet(String.format("%s/system/sling/logout", baseServerUri));
         try (CloseableHttpResponse logoutResponse = httpClient.execute(logoutRequest, httpContext)) {
-            assertEquals(HttpServletResponse.SC_MOVED_TEMPORARILY, logoutResponse.getStatusLine().getStatusCode());
+            assertEquals(
+                    HttpServletResponse.SC_MOVED_TEMPORARILY,
+                    logoutResponse.getStatusLine().getStatusCode());
             Cookie parsedFormauthCookie = parseFormAuthCookieFromHeaders(logoutResponse);
             assertNotNull("Expected a formauth cookie in the response", parsedFormauthCookie);
             assertEquals("Expected the formauth cookie value to be empty", "", parsedFormauthCookie.getValue());
             assertTrue("Expected the formauth cookie to be expired", parsedFormauthCookie.isExpired(new Date()));
-            assertEquals("Expected the formauth cookie domain to be localhost", "localhost", parsedFormauthCookie.getDomain());
+            assertEquals(
+                    "Expected the formauth cookie domain to be localhost",
+                    "localhost",
+                    parsedFormauthCookie.getDomain());
 
             Cookie parsedFormauthDomainCookie = parseCookieFromHeaders(logoutResponse, COOKIE_SLING_FORMAUTH_DOMAIN);
             assertNull("Did not expected a formauth domain cookie in the response", parsedFormauthDomainCookie);
@@ -124,14 +134,18 @@ public class SLING10421InvalidDomainIT extends AuthFormClientTestSupport {
             assertNull("Did not expected a formauth cookie in the cookie store", formauthCookie2);
 
             Cookie formauthDomainCookie2 = getCookieFromCookieStore(COOKIE_SLING_FORMAUTH_DOMAIN);
-            assertSame("Did not expected a new formauth domain cookie in the cookie store", invalidCookie, formauthDomainCookie2);
+            assertSame(
+                    "Did not expected a new formauth domain cookie in the cookie store",
+                    invalidCookie,
+                    formauthDomainCookie2);
         }
     }
 
     @Override
     protected void doFormsLogin() throws MalformedCookieException, IOException {
-        super.doFormsLogin(cookie -> assertEquals("Expected a formauth cookie with domain equal to host", "localhost", cookie.getDomain()),
-                           domainCookie -> assertNull("Did not expect a formauth domain cookie", domainCookie));
+        super.doFormsLogin(
+                cookie -> assertEquals(
+                        "Expected a formauth cookie with domain equal to host", "localhost", cookie.getDomain()),
+                domainCookie -> assertNull("Did not expect a formauth domain cookie", domainCookie));
     }
-
 }

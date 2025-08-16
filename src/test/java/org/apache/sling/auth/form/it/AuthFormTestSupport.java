@@ -96,6 +96,10 @@ public abstract class AuthFormTestSupport extends TestSupport {
         versionResolver.setVersion("org.ow2.asm", "asm-util", "9.5");
         versionResolver.setVersion("org.ow2.asm", "asm-tree", "9.5");
 
+        // SLING-12890 - bump to a compatible version of commons-lang3
+        //  NOTE: remove this when the versionResolver defaults to this version or later
+        versionResolver.setVersionFromProject("org.apache.commons", "commons-lang3");
+
         return options(composite(
                         super.baseConfiguration(),
                         when(vmOption != null).useOptions(vmOption),

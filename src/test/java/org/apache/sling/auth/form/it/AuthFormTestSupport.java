@@ -39,8 +39,8 @@ import org.ops4j.pax.exam.Configuration;
 import org.ops4j.pax.exam.Option;
 import org.ops4j.pax.exam.options.ModifiableCompositeOption;
 import org.ops4j.pax.exam.options.extra.VMOption;
-import org.ops4j.pax.tinybundles.core.TinyBundle;
-import org.ops4j.pax.tinybundles.core.TinyBundles;
+import org.ops4j.pax.tinybundles.TinyBundle;
+import org.ops4j.pax.tinybundles.TinyBundles;
 import org.osgi.framework.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +59,7 @@ import static org.ops4j.pax.exam.CoreOptions.streamBundle;
 import static org.ops4j.pax.exam.CoreOptions.vmOption;
 import static org.ops4j.pax.exam.CoreOptions.when;
 import static org.ops4j.pax.exam.cm.ConfigurationAdminOptions.factoryConfiguration;
-import static org.ops4j.pax.tinybundles.core.TinyBundles.withBnd;
+import static org.ops4j.pax.tinybundles.TinyBundles.bndBuilder;
 
 public abstract class AuthFormTestSupport extends TestSupport {
     private static final String BUNDLE_SYMBOLICNAME = "TEST-CONTENT-BUNDLE";
@@ -262,7 +262,7 @@ public abstract class AuthFormTestSupport extends TestSupport {
         try (final InputStream is = getClass().getResourceAsStream(resourcePath)) {
             assertNotNull("Expecting resource to be found:" + resourcePath, is);
             logger.info("Adding resource to bundle, path={}, resource={}", pathInBundle, resourcePath);
-            bundle.add(pathInBundle, is);
+            bundle.addResource(pathInBundle, is);
         }
     }
 
@@ -276,15 +276,15 @@ public abstract class AuthFormTestSupport extends TestSupport {
     protected Option buildBundleResourcesBundle(final String header, final Collection<String> content)
             throws IOException {
         final TinyBundle bundle = TinyBundles.bundle();
-        bundle.set(Constants.BUNDLE_SYMBOLICNAME, BUNDLE_SYMBOLICNAME);
-        bundle.set(SLING_BUNDLE_RESOURCES_HEADER, header);
-        bundle.set(
+        bundle.setHeader(Constants.BUNDLE_SYMBOLICNAME, BUNDLE_SYMBOLICNAME);
+        bundle.setHeader(SLING_BUNDLE_RESOURCES_HEADER, header);
+        bundle.setHeader(
                 "Require-Capability",
                 "osgi.extender;filter:=\"(&(osgi.extender=org.apache.sling.bundleresource)(version<=1.1.0)(!(version>=2.0.0)))\"");
 
         for (final String entry : content) {
             addContent(bundle, entry);
         }
-        return streamBundle(bundle.build(withBnd())).start();
+        return streamBundle(bundle.build(bndBuilder())).start();
     }
 }

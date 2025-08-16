@@ -42,7 +42,7 @@
         <!-- To debug the pax process, override this with -D -->
         <pax.vm.options>-Xmx512M</pax.vm.options>
         <project.build.outputTimestamp>2024-07-01T12:25:41Z</project.build.outputTimestamp>
-        <sling.java.version>11</sling.java.version>
+        <sling.java.version>17</sling.java.version>
     </properties>
 
     <dependencies>

@@ -47,6 +47,7 @@ import org.slf4j.LoggerFactory;
 
 import static org.apache.felix.hc.api.FormattingResultLog.msHumanReadable;
 import static org.apache.sling.testing.paxexam.SlingOptions.awaitility;
+import static org.apache.sling.testing.paxexam.SlingOptions.paxLoggingApi;
 import static org.apache.sling.testing.paxexam.SlingOptions.slingQuickstartOakTar;
 import static org.apache.sling.testing.paxexam.SlingOptions.versionResolver;
 import static org.awaitility.Awaitility.await;
@@ -56,6 +57,7 @@ import static org.ops4j.pax.exam.CoreOptions.junitBundles;
 import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 import static org.ops4j.pax.exam.CoreOptions.options;
 import static org.ops4j.pax.exam.CoreOptions.streamBundle;
+import static org.ops4j.pax.exam.CoreOptions.systemProperty;
 import static org.ops4j.pax.exam.CoreOptions.vmOption;
 import static org.ops4j.pax.exam.CoreOptions.when;
 import static org.ops4j.pax.exam.cm.ConfigurationAdminOptions.factoryConfiguration;
@@ -87,6 +89,18 @@ public abstract class AuthFormTestSupport extends TestSupport {
             jacocoCommand = new VMOption(jacocoOpt);
         }
 
+        // SLING-12868 - newer version of sling.api and dependencies
+        //   may remove at a later date if the superclass includes these versions or later
+        versionResolver.setVersionFromProject("org.apache.sling", "org.apache.sling.api");
+        versionResolver.setVersion("org.apache.sling", "org.apache.sling.engine", "3.0.0");
+        versionResolver.setVersion("org.apache.felix", "org.apache.felix.http.servlet-api", "6.1.0");
+        versionResolver.setVersion("org.apache.sling", "org.apache.sling.resourceresolver", "2.0.0");
+        versionResolver.setVersion("org.apache.sling", "org.apache.sling.auth.core", "2.0.0");
+        versionResolver.setVersion("commons-fileupload", "commons-fileupload", "1.6.0");
+        versionResolver.setVersion("org.apache.sling", "org.apache.sling.scripting.spi", "2.0.0");
+        versionResolver.setVersion("org.apache.sling", "org.apache.sling.scripting.core", "3.0.0");
+        versionResolver.setVersion("org.apache.sling", "org.apache.sling.servlets.resolver", "3.0.0");
+
         // SLING-12573 - Java 21 support was added in ASM 9.5
         //   NOTE: remove this block when the versionResolver defaults to this version of asm* or later
         versionResolver.setVersion("org.ow2.asm", "asm", "9.5");
@@ -106,7 +120,21 @@ public abstract class AuthFormTestSupport extends TestSupport {
                         when(jacocoCommand != null).useOptions(jacocoCommand),
                         optionalRemoteDebug(),
                         slingQuickstart(),
+                        paxLoggingApi(), // newer version to provide the 2.x version of slf4j
+                        systemProperty("org.ops4j.pax.logging.DefaultServiceLog.level")
+                                .value("INFO"),
                         testBundle("bundle.filename"),
+                        // SLING-12868 - begin extra bundles for sling api 3.x
+                        mavenBundle()
+                                .groupId("org.apache.felix")
+                                .artifactId("org.apache.felix.http.wrappers")
+                                .version("6.1.0"),
+                        mavenBundle()
+                                .groupId("org.apache.sling")
+                                .artifactId("org.apache.sling.commons.johnzon")
+                                .version("2.0.0"),
+                        // end extra bundles for sling api 3.x
+
                         // testing - ensure that the /content path is accessible to everyone
                         //   NOTE: required since update to o.a.sling.testing.paxexam 4.x as the 3.x version already did
                         // this step

@@ -19,7 +19,6 @@
 package org.apache.sling.auth.form.it;
 
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.net.URI;
@@ -31,6 +30,7 @@ import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.List;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;

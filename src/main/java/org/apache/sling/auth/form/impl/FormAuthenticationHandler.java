@@ -20,12 +20,6 @@ package org.apache.sling.auth.form.impl;
 
 import javax.jcr.Credentials;
 import javax.jcr.SimpleCredentials;
-import javax.servlet.Servlet;
-import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,6 +29,12 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 
+import jakarta.servlet.Servlet;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.sling.api.auth.Authenticator;
 import org.apache.sling.api.resource.LoginException;
@@ -43,9 +43,9 @@ import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ResourceResolverFactory;
 import org.apache.sling.auth.core.AuthConstants;
 import org.apache.sling.auth.core.AuthUtil;
-import org.apache.sling.auth.core.spi.AuthenticationHandler;
 import org.apache.sling.auth.core.spi.AuthenticationInfo;
-import org.apache.sling.auth.core.spi.DefaultAuthenticationFeedbackHandler;
+import org.apache.sling.auth.core.spi.DefaultJakartaAuthenticationFeedbackHandler;
+import org.apache.sling.auth.core.spi.JakartaAuthenticationHandler;
 import org.apache.sling.auth.form.FormReason;
 import org.apache.sling.auth.form.impl.jaas.FormCredentials;
 import org.apache.sling.auth.form.impl.jaas.JaasHelper;
@@ -69,11 +69,12 @@ import org.slf4j.LoggerFactory;
  */
 @Component(
         name = "org.apache.sling.auth.form.FormAuthenticationHandler",
-        property = {AuthenticationHandler.TYPE_PROPERTY + "=" + HttpServletRequest.FORM_AUTH},
-        service = AuthenticationHandler.class,
+        property = {JakartaAuthenticationHandler.TYPE_PROPERTY + "=" + HttpServletRequest.FORM_AUTH},
+        service = JakartaAuthenticationHandler.class,
         immediate = true)
 @Designate(ocd = FormAuthenticationHandlerConfig.class)
-public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHandler implements AuthenticationHandler {
+public class FormAuthenticationHandler extends DefaultJakartaAuthenticationFeedbackHandler
+        implements JakartaAuthenticationHandler {
 
     /**
      * The request method required for user name and password submission by the form
@@ -359,7 +360,7 @@ public class FormAuthenticationHandler extends DefaultAuthenticationFeedbackHand
         if (REQUEST_METHOD.equals(request.getMethod())
                 && request.getRequestURI().endsWith(REQUEST_URL_SUFFIX)) {
 
-            if (DefaultAuthenticationFeedbackHandler.handleRedirect(request, response)) {
+            if (DefaultJakartaAuthenticationFeedbackHandler.handleRedirect(request, response)) {
                 // terminate request, all done in the default handler
                 result = false;
             } else {

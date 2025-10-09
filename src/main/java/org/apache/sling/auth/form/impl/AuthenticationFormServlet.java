@@ -18,11 +18,10 @@
  */
 package org.apache.sling.auth.form.impl;
 
-import javax.servlet.Servlet;
-import javax.servlet.http.HttpServletRequest;
-
-import org.apache.sling.auth.core.spi.AbstractAuthenticationFormServlet;
-import org.apache.sling.auth.core.spi.AuthenticationHandler;
+import jakarta.servlet.Servlet;
+import jakarta.servlet.http.HttpServletRequest;
+import org.apache.sling.auth.core.spi.AbstractJakartaAuthenticationFormServlet;
+import org.apache.sling.auth.core.spi.JakartaAuthenticationHandler;
 import org.apache.sling.auth.form.FormReason;
 import org.osgi.service.component.annotations.Component;
 
@@ -37,7 +36,7 @@ import org.osgi.service.component.annotations.Component;
             "sling.servlet.paths=" + AuthenticationFormServlet.SERVLET_PATH,
             "service.description=Default Login Form for Form Based Authentication"
         })
-public class AuthenticationFormServlet extends AbstractAuthenticationFormServlet {
+public class AuthenticationFormServlet extends AbstractJakartaAuthenticationFormServlet {
 
     public static final String SERVLET_PATH = "/system/sling/form/login"; // NOSONAR
     public static final String AUTH_REQUIREMENTS = "-" + SERVLET_PATH;
@@ -57,12 +56,12 @@ public class AuthenticationFormServlet extends AbstractAuthenticationFormServlet
     @Override
     protected String getReason(final HttpServletRequest request) {
         // return the resource attribute if set to a non-empty string
-        Object resObj = request.getAttribute(AuthenticationHandler.FAILURE_REASON);
+        Object resObj = request.getAttribute(JakartaAuthenticationHandler.FAILURE_REASON);
         if (resObj instanceof FormReason formReason) {
             return formReason.toString();
         }
 
-        final String reason = request.getParameter(AuthenticationHandler.FAILURE_REASON);
+        final String reason = request.getParameter(JakartaAuthenticationHandler.FAILURE_REASON);
         if (reason != null) {
             try {
                 return FormReason.valueOf(reason).toString();

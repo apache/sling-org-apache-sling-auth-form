@@ -18,11 +18,10 @@
  */
 package org.apache.sling.auth.form.it;
 
-import javax.servlet.http.HttpServletResponse;
-
 import java.io.IOException;
 import java.util.Date;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;

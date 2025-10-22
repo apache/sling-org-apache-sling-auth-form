@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <!--
   Licensed to the Apache Software Foundation (ASF) under one
@@ -18,55 +18,116 @@
   specific language governing permissions and limitations
   under the License.
 -->
-    <head>
-        <meta charset="utf-8" />
-        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Login to Apache Sling</title>
-        <link href="../../../content/starter/css/bundle.css" rel="stylesheet" />
-    </head>
-    <body>
-        <div class="Grid Fit-Medium Home-Grid">
-            <div class="Gradient"></div>
-            <header class="Cell Medium-35 Large-25 Align-Center Logos">
-                <a href="https://sling.apache.org" target="_blank" rel="noopener" id="sling-logo" title="Visit the Apache Sling website">
-                    <img src="../../../content/starter/img/sling-logo.svg" alt="Apache Sling Logo"/>
-                </a>
-                <a href="https://apache.org" target="_blank" rel="noopener" id="asf-logo" title="Visit the Apache Software Foundation website">
-                    <img src="../../../content/starter/img/asf-logo.svg" alt="Apache Software Foundation Logo"/>
-                </a>
-            </header>
-            <div class="Cell Align-Center Main-Content">
-                <div class="Grid">
-                    <section class="Cell Medium-35">
-                        <h3>Login:</h3>
-                        <form id="loginform" method="POST" action="${contextPath}/j_security_check" enctype="multipart/form-data" accept-charset="UTF-8">
-                            <input type="hidden" name="_charset_" value="UTF-8" />
-                            <input type="hidden" name="resource" value="${resource}" />
-                            <div id="error">
-                                <p>${j_reason}</p>
-                            </div>
-                            <div>
-                                <label for="j_username" >Username:</label>
-                            </div>
-                            <div>
-                                <input id="j_username" name="j_username" type="text" autofocus/>
-                            </div>
-                            <div>
-                                <label for="j_password" accesskey="p">Password:</label>
-                            </div>
-                            <div>
-                                <input id="j_password" name="j_password" type="password" />
-                            </div>
-                            <div class="buttongroup">
-                                <button id="login" class="form-button" type="submit">Login</button>
-                            </div>
-                        </form>
-                    </section>
-                    <div class="Cell Medium-65">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </body>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Login to Apache Sling</title>
+  <style>
+    /* Simple, self-contained styling */
+    :root{
+      --bg:#eef2f7;
+      --card:#ffffff;
+      --accent:#3478f6;
+      --danger:#d9534f;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    html,body{ height: calc(100% - 24px); }
+    body{
+      margin:0;
+      background:linear-gradient(180deg,var(--bg),#f8fafc);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+      color:#0f172a;
+    }
+    .card{
+      width:100%;
+      max-width:420px;
+      background:var(--card);
+      border-radius:12px;
+      box-shadow:0 6px 24px rgba(15,23,42,0.08);
+      padding:28px;
+    }
+    h1{
+      margin:0 0 8px 0;
+      font-size:20px;
+      letter-spacing:-0.2px;
+    }
+    label{
+      display:block;
+      font-size:13px;
+      margin-bottom:6px;
+      color:#0b1220;
+    }
+    .field{
+      margin-bottom:14px;
+    }
+    input[type="text"],
+    input[type="password"]{
+      width:100%;
+      padding:10px 12px;
+      font-size:15px;
+      border:1px solid #e6e9ef;
+      border-radius:8px;
+      background:#fbfdff;
+      box-sizing:border-box;
+      outline:none;
+      transition:box-shadow .12s, border-color .12s;
+    }
+    input:focus{
+      border-color:var(--accent);
+      box-shadow:0 4px 10px rgba(52,120,246,0.08);
+    }
+    button.primary{
+      width:100%;
+      padding:10px 12px;
+      background:var(--accent);
+      color:white;
+      border:0;
+      border-radius:8px;
+      font-size:15px;
+      cursor:pointer;
+    }
+    #error{ color:var(--danger); }
+  </style>
+</head>
+<body>
+  <main class="card" role="main" aria-labelledby="loginTitle">
+    <h1 id="loginTitle">Login to Apache Sling</h1>
+
+    <form id="loginform" method="post" action="${contextPath}/j_security_check" enctype="multipart/form-data" accept-charset="UTF-8">
+      <input type="hidden" name="_charset_" value="UTF-8" />
+      <input type="hidden" name="resource" value="${resource}" />
+
+      <div id="error">
+        <p>${j_reason}</p>
+      </div>
+
+      <div class="field">
+        <label for="j_username">Username</label>
+        <input id="j_username" name="j_username" type="text" required />
+      </div>
+
+      <div class="field">
+        <label for="j_password">Password</label>
+        <input id="j_password" name="j_password" type="password" required />
+      </div>
+
+      <div>
+        <button type="submit" class="primary">Login</button>
+      </div>
+    </form>
+  </main>
+
+  <script>
+    // Self-contained client-side behavior (no external resources)
+    (function(){
+      // Accessibility: focus first input on load
+      window.addEventListener('load', () => {
+        document.getElementById('j_username').focus();
+      });
+    })();
+  </script>
+</body>
 </html>

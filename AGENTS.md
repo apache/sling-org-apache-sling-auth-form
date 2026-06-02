@@ -104,3 +104,10 @@ src/
 - **Integration test isolation**: each `*IT` class starts its own Pax Exam container; running multiple IT classes in the same JVM causes port conflicts. Failsafe forks a new JVM per test class by default — do not change this.
 - **`Conditional-Package`**: `commons-codec` classes are inlined into the bundle (see `bnd.bnd`). Do not add a runtime `Import-Package` for `org.apache.commons.codec`.
 - **Java version**: the parent POM pins `sling.java.version=17`; do not use `--release` flags lower than 17 in compiler args.
+
+# Security
+
+<!-- sling-security-default:start -->
+The threat model for this project is https://github.com/apache/sling/blob/master/docs/threat-model.md .
+<!-- sling-security-default:end -->
+

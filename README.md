@@ -8,4 +8,68 @@ Bundle implementing form based authentication with login and logout support.
 Authentication state is maintained in a Cookie or in an HTTP Session. The
 password is only submitted when first authenticating.
 
-This module is part of the [Apache Sling](https://sling.apache.org) project. You can read more about this module on our [documentation site](http://sling.apache.org/documentation/the-sling-engine/authentication/authentication-authenticationhandler/form-based-authenticationhandler.html).
+This bundle targets **Java 17** and current Sling Auth Core / Sling API releases,
+including Jakarta Servlet support.
+
+## Features
+
+* Form-based login/logout via `JakartaAuthenticationHandler`
+* Authentication state persisted in either:
+  * signed cookie tokens (`sling.formauth`, default), or
+  * HTTP session attributes
+* Standalone default login form servlet at `/system/sling/form/login`
+  (template: `src/main/resources/org/apache/sling/auth/form/impl/login.html`)
+* Optional JAAS integration through `FormLoginModulePlugin`
+
+## Build and test
+
+```bash
+# Build and package the bundle
+mvn clean package
+
+# Run unit tests
+mvn test
+
+# Run a single test class
+mvn test -Dtest=TokenStoreTest
+
+# Run unit + integration tests (Pax Exam)
+mvn verify
+
+# Run integration tests only
+mvn failsafe:integration-test failsafe:verify
+
+# Generate JaCoCo report
+mvn verify -Pjacoco-report
+```
+
+## Project layout
+
+```
+pom.xml                        Maven build descriptor
+bnd.bnd                        OSGi bundle manifest instructions
+src/
+  main/
+    java/org/apache/sling/auth/form/
+      FormReason.java
+      impl/
+        FormAuthenticationHandler.java
+        FormAuthenticationHandlerConfig.java
+        AuthenticationFormServlet.java
+        TokenStore.java
+        FormLoginModulePlugin.java
+        jaas/
+    resources/
+      OSGI-INF/l10n/
+      org/apache/sling/auth/form/impl/login.html
+  test/
+    java/
+      org/apache/sling/auth/form/impl/
+      org/apache/sling/auth/form/it/
+```
+
+## Documentation
+
+This module is part of the [Apache Sling](https://sling.apache.org) project.
+For module documentation, see
+[Form-Based Authentication Handler](https://sling.apache.org/site/form-based-authenticationhandler.html).

@@ -39,8 +39,14 @@ mvn verify
 # Run integration tests only
 mvn failsafe:integration-test failsafe:verify
 
+# Run a single integration test class
+mvn -Dit.test=SLING10290IT failsafe:integration-test failsafe:verify
+
 # Generate JaCoCo report
 mvn verify -Pjacoco-report
+
+# Build without running tests
+mvn package -DskipTests
 ```
 
 ## Project layout
@@ -50,23 +56,49 @@ pom.xml                        Maven build descriptor
 bnd.bnd                        OSGi bundle manifest instructions
 src/
   main/
-    java/org/apache/sling/auth/form/
-      FormReason.java
-      impl/
-        FormAuthenticationHandler.java
-        FormAuthenticationHandlerConfig.java
-        AuthenticationFormServlet.java
-        TokenStore.java
-        FormLoginModulePlugin.java
-        jaas/
+    java/
+      org/apache/sling/auth/form/
+        FormReason.java
+        package-info.java
+        impl/
+          FormAuthenticationHandler.java
+          FormAuthenticationHandlerConfig.java
+          AuthenticationFormServlet.java
+          TokenStore.java
+          FormLoginModulePlugin.java
+          jaas/
+            FormCredentials.java
+            FormLoginModule.java
+            JaasHelper.java
     resources/
       OSGI-INF/l10n/
+        org.apache.sling.auth.form.impl.FormAuthenticationHandlerConfig.properties
       org/apache/sling/auth/form/impl/login.html
   test/
     java/
-      org/apache/sling/auth/form/impl/
-      org/apache/sling/auth/form/it/
+      org/apache/sling/auth/form/
+        FormReasonTest.java
+        impl/
+          FormAuthenticationHandlerTest.java
+          TokenStoreTest.java
+        it/
+          AuthFormTestSupport.java
+          AuthFormClientTestSupport.java
+          SLING10290IT.java
+          SLING10421ValidDomainIT.java
+          SLING10421InvalidDomainIT.java
+    resources/
+      exam.properties
+      content/apps/sling/OrderedFolder/SLING10290IT.html
 ```
+
+## Dependencies and integration notes
+
+* OSGi DS and Metatype annotations from `org.osgi.service.component.annotations` and `org.osgi.service.metatype.annotations`
+* Sling integration through `org.apache.sling.auth.core` and `org.apache.sling.api`
+* Servlet APIs for both `jakarta.servlet` and `javax.servlet` (provided scope)
+* Optional JAAS dependencies: `org.apache.felix.jaas` and `oak-core`
+* `commons-codec` is conditionally packaged into the bundle (`Conditional-Package` in `bnd.bnd`)
 
 ## Documentation
 
